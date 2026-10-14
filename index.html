@@ -31,6 +31,7 @@
     --seg-out:#57C26A; --seg-in:#F5A04A; --seg-stairs:#B48CF5; --seg-elev:#66A3F7;
   --campus:#18221E; --grass:#26412E; --court:#4D3C2B; --pave:#2C3934; --road:#3B4743; --landmark:#34423C; --clinic:#C04F45; --lot:#222C28; color-scheme:dark;
 }
+[hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-display);font-size:14px;line-height:1.5;
   padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px;box-sizing:border-box}
@@ -89,7 +90,14 @@ ol.steps b{font-weight:600}
 details{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px}
 summary{cursor:pointer;font-weight:600}
 pre{font-family:var(--f-mono);font-size:11.5px;line-height:1.5;background:var(--soft);border-radius:6px;padding:10px;overflow-x:auto;margin:10px 0 0;color:var(--ink)}
-.mapwrap{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--soft);min-height:0;min-width:0}
+.mapcol{position:relative;display:flex;flex-direction:column;min-height:0;min-width:0}
+.mapwrap{position:relative;flex:1;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--soft);min-height:0;min-width:0}
+/* Màn hình rộng: chú giải, thẻ chỉ đường và bảng điều khiển nổi trên đáy bản đồ */
+.dock{position:absolute;left:12px;right:12px;bottom:12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;gap:12px;pointer-events:none}
+.dock>*{pointer-events:auto}
+.dock>.legend{grid-column:1;justify-self:start}
+.dock>.navcard{grid-column:2}
+.dock>.pad{grid-column:3;justify-self:end;width:max-content}
 #map{position:absolute;inset:0}
 #map canvas{display:block;touch-action:none}
 .bar{position:absolute;top:12px;left:12px;right:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;pointer-events:none}
@@ -97,11 +105,24 @@ pre{font-family:var(--f-mono);font-size:11.5px;line-height:1.5;background:var(--
 .seg button{font:inherit;font-size:13px;font-weight:600;border:0;background:none;color:var(--muted);padding:6px 10px;border-radius:5px;cursor:pointer;min-width:34px}
 .seg button.on{background:var(--sign);color:var(--sign-ink)}
 .seg .lbl{font-size:12px;color:var(--muted);align-self:center;padding:0 4px 0 6px}
-.legend{position:absolute;left:12px;bottom:12px;display:flex;flex-wrap:wrap;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--muted);max-width:calc(100% - 24px)}
+.legend{display:flex;flex-direction:column;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12px;color:var(--muted);width:max-content}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;border:1px solid var(--line)}
-.legend{max-width:calc(100% - 196px)}
 .legend i.ln{width:16px;height:5px;border:0;border-radius:3px;vertical-align:2px}
-.pad{position:absolute;right:12px;bottom:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:6px}
+/* đầu mục có nút thu gọn */
+.phead{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);min-height:24px}
+.mini{width:26px;height:26px;flex:none;border:0;border-radius:6px;background:none;color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0;touch-action:manipulation}
+.mini:hover{background:var(--soft);color:var(--ink)}
+.mini svg{transition:transform .2s}
+.min .mini svg{transform:rotate(180deg)}
+.pbody{display:flex;flex-direction:column;gap:4px}
+.pad .pbody{gap:6px}
+.min>.pbody{display:none}
+.legend.min,.pad.min{padding-block:4px}
+.navcard.min .nc-text,.navcard.min .nc-prog,.navcard.min #navPrev{display:none}
+.nc-mini{margin-left:auto}
+.nc-mini+.nc-x{margin-left:0}
+@media (prefers-reduced-motion: reduce){ .mini svg{transition:none} }
+.pad{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:6px}
 .pad .grid{display:grid;grid-template-columns:repeat(3,38px);gap:4px}
 .pad .grid button{width:38px;height:38px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:7px;display:grid;place-items:center;cursor:pointer;padding:0;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .pad .grid button:hover{border-color:var(--sign)}
@@ -116,13 +137,48 @@ pre{font-family:var(--f-mono);font-size:11.5px;line-height:1.5;background:var(--
   .pad .grid button{width:44px;height:44px}
   .pad .mode button{height:34px}
   .pad .tip .mouse{display:none} .pad .tip .touch{display:inline}
-  .legend{max-width:calc(100% - 214px)}
+  .mini{width:34px;height:34px}
 }
-@media (max-width:760px){ .pad .tip{display:none} }
+/* thẻ chỉ đường */
+.navcard{justify-self:center;width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.14)}
+.nc-idle{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.nc-sum{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.nc-sum span{font-size:13px;font-weight:500;color:var(--muted);margin-left:6px}
+.go,.ghostbtn{font:inherit;font-size:14px;font-weight:700;border-radius:999px;padding:0 18px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;touch-action:manipulation;white-space:nowrap}
+.go{background:var(--sign);color:var(--sign-ink);border:0}
+.ghostbtn{background:var(--soft);color:var(--ink);border:1px solid var(--line)}
+.ghostbtn:disabled{opacity:.45;cursor:default}
+.nc-top{display:flex;align-items:center;gap:8px}
+.nc-badge{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font-family:var(--f-mono);font-weight:700;font-size:13px;color:var(--panel);flex:none}
+.nc-count{font-size:11.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.nc-x{margin-left:auto;width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--soft);color:var(--ink);display:grid;place-items:center;cursor:pointer;flex:none}
+.nc-text{margin:0;font-size:15px;line-height:1.45}
+.nc-prog{height:4px;border-radius:2px;background:var(--soft);overflow:hidden}
+.nc-prog i{display:block;height:100%;width:0;background:var(--sign);transition:width .3s}
+.nc-btns{display:flex;gap:8px}
+.nc-btns>*{flex:1}
+.summary .go{align-self:flex-start}
+ol.steps li{cursor:pointer;border-radius:8px;padding:8px 6px}
+ol.steps li:hover{background:var(--soft)}
+ol.steps li.cur{background:var(--soft);box-shadow:inset 3px 0 0 var(--sign)}
+ol.steps li:not(:last-child)::after{left:18px}
+@media (prefers-reduced-motion: reduce){ .nc-prog i{transition:none} }
+/* Màn hình hẹp: tách thẻ chỉ đường và bảng điều khiển ra vùng riêng bên dưới bản đồ */
+@media (max-width:1100px){
+  .dock{position:static;padding-top:10px;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nav nav" "legend pad";align-items:start;gap:10px}
+  .navcard{grid-area:nav;max-width:none;box-shadow:none}
+  .dock>.legend{grid-area:legend;display:flex;flex-direction:column;gap:4px;width:auto;align-self:stretch;justify-self:stretch;font-size:13px;padding:6px 8px 8px 12px}
+  .dock>.legend .pbody{flex:1;justify-content:space-evenly}
+  .dock>.legend.min,.dock:has(.pad.min)>.legend{align-self:start}
+  .dock>.navcard{grid-area:nav}
+  .dock>.pad{grid-area:pad;justify-self:end}
+}
 @media (max-width:760px){
   html,body{height:auto}
   .app{grid-template-columns:1fr;height:auto}
-  .mapwrap{height:62vh;order:-1}
+  .mapcol{order:-1}
+  .mapwrap{height:58vh;flex:none}
+  .pad .tip{display:none}
 }
 </style>
 
@@ -162,20 +218,45 @@ pre{font-family:var(--f-mono);font-size:11.5px;line-height:1.5;background:var(--
     </div>
   </aside>
 
-  <section class="mapwrap" aria-label="Mô hình 3D khuôn viên">
+  <section class="mapcol" aria-label="Mô hình 3D khuôn viên">
+   <div class="mapwrap">
     <div id="map"></div>
     <div class="bar">
       <div class="seg" id="bldBar" role="group" aria-label="Chọn tòa nhà"></div>
       <div class="seg" id="floorBar" role="group" aria-label="Chọn tầng" hidden></div>
     </div>
-    <div class="legend" aria-label="Chú giải đường đi">
+   </div>
+   <div class="dock">
+    <div class="legend" aria-label="Chú giải đường đi" data-box="legend" data-name="chú giải">
+      <div class="phead"><span>Chú giải</span><button type="button" class="mini" aria-expanded="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="pbody">
       <span><i class="ln" style="background:var(--seg-out)"></i>Ngoài trời</span>
       <span><i class="ln" style="background:var(--seg-in)"></i>Trong nhà</span>
       <span><i class="ln" style="background:var(--seg-stairs)"></i>Thang bộ</span>
       <span><i class="ln" style="background:var(--seg-elev)"></i>Thang máy</span>
       <span><i style="background:var(--route)"></i>Nơi cần đến</span>
+      </div>
     </div>
-    <div class="pad" role="group" aria-label="Điều khiển góc nhìn">
+    <div class="navcard" id="navcard" hidden aria-live="polite" data-box="navcard" data-name="thẻ chỉ đường">
+      <div class="nc-idle" id="ncIdle">
+        <div class="nc-sum" id="ncSum"></div>
+        <button type="button" class="go" id="navStart"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>Bắt đầu chỉ đường</button>
+      </div>
+      <div id="ncRun" hidden>
+        <div class="nc-top"><span class="nc-badge" id="ncBadge">1</span><span class="nc-count" id="ncCount"></span>
+          <button type="button" class="mini nc-mini" aria-expanded="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+          <button type="button" class="nc-x" id="navExit" aria-label="Thoát chế độ chỉ đường" title="Thoát (Esc)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <p class="nc-text" id="ncText" style="margin:8px 0"></p>
+        <div class="nc-prog" style="margin-bottom:8px"><i id="ncProg"></i></div>
+        <div class="nc-btns">
+          <button type="button" class="ghostbtn" id="navPrev" title="Mốc trước (P)">Trước</button>
+          <button type="button" class="go" id="navNext" title="Mốc tiếp theo (N)">Tiếp</button>
+        </div>
+      </div>
+    </div>
+    <div class="pad" role="group" aria-label="Điều khiển góc nhìn" data-box="pad" data-name="bảng điều khiển">
+      <div class="phead"><span>Điều khiển</span><button type="button" class="mini" aria-expanded="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="pbody">
       <div class="mode" role="group" aria-label="Kéo trên bản đồ để">
         <button type="button" id="modeRot" class="on" aria-pressed="true" title="Kéo để xoay góc nhìn">Xoay</button>
         <button type="button" id="modePan" aria-pressed="false" title="Kéo để dời bản đồ tới, lui, sang ngang">Dời</button>
@@ -192,7 +273,9 @@ pre{font-family:var(--f-mono);font-size:11.5px;line-height:1.5;background:var(--
         <button type="button" data-act="in" aria-label="Phóng to" title="Phóng to (+)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
       </div>
       <p class="tip"><span class="mouse">Chuột trái: xoay · chuột phải: dời · cuộn: phóng to · phím W A S D, Q E</span><span class="touch">1 ngón: xoay hoặc dời (chọn ở trên) · 2 ngón: dời và phóng to</span></p>
+      </div>
     </div>
+   </div>
   </section>
 </div>
 
@@ -225,7 +308,7 @@ const BUILDINGS=[
   {id:'D',name:'Tòa D',floors:11,basement:true,elevator:true,fmt:(f,k)=>f<0?`DH-${p2(k)}`:`D${p2(f)}-${p2(k)}`,
     wings:[[878,757,925,805,{minF:-1}],
            [925,757,1128,790,{stairsAt:'end'}],
-           [925,795,1060,862,{minF:-1,maxF:8,stairsAt:'end',shape:'podium'}],
+           [925,795,1060,862,{minF:-1,maxF:7,stairsAt:'end',shape:'podium'}],
            [878,805,915,912,{stairsAt:'end'}]],
     doors:{ED1:'sảnh chính (mặt cong)',ED2:'cửa phía Tây'}},
 ];
@@ -368,9 +451,10 @@ function buildSteps(r,start,dest){
   steps.push({t:'start',html: start.kind==='place' ? `Xuất phát tại <b>${start.name}</b>.` : `Xuất phát tại <b>${tLabel(start)}</b>, ${fl(start.f)} tòa ${start.b}.`});
   const cat=e=>e.type==='walk'?'in':e.type;
   let i=0;
+  steps[0].i0=steps[0].i1=0; if(P[0].level!==0){ steps[0].b=P[0].b; steps[0].f=P[0].level; }
   while(i<E.length){
     const c=cat(E[i]); let j=i, d=0; while(j<E.length&&cat(E[j])===c){ d+=E[j].dist; j++; }
-    const next=E[j];
+    const next=E[j], before=steps.length;
     if(c==='in'){
       walk+=d;
       if(next&&(next.type==='stairs'||next.type==='elevator')){
@@ -403,6 +487,13 @@ function buildSteps(r,start,dest){
         steps.push({t:'end',html:`Đến nơi: <b>${tLabel(dest)}</b>.`});
       }
     }
+    // gắn mỗi bước với đoạn đường tương ứng (chỉ số điểm đầu, cuối) để làm mốc dẫn đường
+    let a0=i, b0=j;
+    if(c==='in'){ if(i>0&&E[i-1].type==='door') a0=i-1; if(next&&next.type==='door') b0=j+1; }
+    for(let q=before;q<steps.length;q++){ const st=steps[q];
+      if(st.t==='end'){ st.i0=st.i1=P.length-1; } else { st.i0=a0; st.i1=b0; }
+      const ns=P.slice(st.i0,st.i1+1).filter(n=>n.level!==0);
+      if(ns.length){ st.b=ns[0].b; st.f=Math.max(...ns.map(n=>n.level)); } }
     i=j;
   }
   const secs=(walk+out)/1.25 + stairsF*18 + elevRides*30 + elevF*5;
@@ -472,7 +563,7 @@ function renderBars(){
     });
   }
 }
-function setFocus(b){ state.focus=b; state.floor=0; renderBars(); applyFocus(); refreshLabels(); b?frameBuilding(b):frameRouteOrCampus(); }
+function setFocus(b){ if(nav.on){ nav.on=false; renderNavCard(); markList(); } state.focus=b; state.floor=0; renderBars(); applyFocus(); refreshLabels(); b?frameBuilding(b):frameRouteOrCampus(); }
 
 function readHash(){
   const h=norm(decodeURIComponent(location.hash.slice(1))); if(!h) return;
@@ -504,7 +595,8 @@ function renderPanel(info){
   if(info.elevRides) chips.push(`<span class="chip e">Thang máy ${info.elevF} tầng</span>`);
   S.innerHTML=`<div class="big">${Math.round(info.walk+info.out)} m<span>${fmtTime(info.secs)}</span></div>
     <div class="chips">${chips.join('')}</div>
-    <ol class="steps">${info.steps.map((s,k)=>`<li class="${s.t}"><span class="n">${k+1}</span><div>${s.html}</div></li>`).join('')}</ol>`;
+    <button type="button" class="go" data-nav="start"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>Bắt đầu chỉ đường</button>
+    <ol class="steps">${info.steps.map((s,k)=>`<li class="${s.t}${nav.on&&k===nav.k?' cur':''}" data-step="${k}" tabindex="0" title="Xem mốc ${k+1} trên bản đồ"><span class="n">${k+1}</span><div>${s.html}</div></li>`).join('')}</ol>`;
 }
 function renderGeo(){
   const u=byId[state.to], r1=v=>Math.round(v*10)/10; let f;
@@ -532,7 +624,10 @@ const sun=new THREE.DirectionalLight(0xffffff,0.5); sun.position.set(80,200,120)
 const tok=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
 const elev=(level,h)=>(level===0?0:(level>0?level-1:level)*FH)+(h||0);
 
-let landmarks=[], routeUse=null, groundMesh=null;
+let landmarks=[], routeUse=null, groundMesh=null, dShell=null;
+let segMeshes=[], segTypes=[], msSprites=[], arrowPool=[], arrowOutline={}, arrowCore={}, curInfo=null, dark=false;
+const nav={on:false,k:0};
+const STEP_TOK={start:'--sign',in:'--seg-in',out:'--seg-out',stairs:'--seg-stairs',elev:'--seg-elev',end:'--route'};
 let world=null, bldGroups={}, pickables=[], labelGroup=null, staticLabels=[], routeGroup=null, mover=null, routePts=[], routeDists=[], routeLen=0;
 
 function makeLabel(text,sub,o){
@@ -568,8 +663,9 @@ function block(cx,cy,lenPx,widPx,angleDeg,height,color){ // khối xoay, toạ �
 }
 
 function buildWorld(){
-  if(world){ scene.remove(world); world.traverse(o=>{ if(o.geometry)o.geometry.dispose(); if(o.material){ if(o.material.map)o.material.map.dispose(); o.material.dispose(); } }); }
-  world=new THREE.Group(); scene.add(world); bldGroups={}; pickables=[]; staticLabels=[];
+  if(world){ scene.remove(world); world.traverse(o=>{ if(o.geometry)o.geometry.dispose(); if(o.material){ (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{ if(m.map) m.map.dispose(); m.dispose(); }); } }); }
+  world=new THREE.Group(); scene.add(world);
+  { const c=new THREE.Color(tok('--soft')); dark=(c.r+c.g+c.b)/3<0.4; } bldGroups={}; pickables=[]; staticLabels=[];
   renderer.setClearColor(new THREE.Color(tok('--soft')));
   // ranh giới khuôn viên
   const border=[[420,362],[890,362],[940,545],[1105,545],[1198,790],[1102,985],[735,930],[522,1078],[390,1022],[225,962],[225,795],[292,765],[292,595],[410,470]];
@@ -597,7 +693,7 @@ function buildWorld(){
     block(1107,622,92,35,45,12,lm),                     // khối C xoay
     block(662,975,150,45,-31.6,12,lm)];                 // khối A gần cổng 1
   landmarks.forEach(m=>{ m.material.transparent=true; m.userData.op=m.material.opacity; world.add(m); });
-  [['Sân bóng mini',540,475],['Nhà xe HSSV',797,455],['Sân bóng chuyền',555,817],['Sân tennis',700,810],['Xưởng cơ khí',798,810,8],['Y tế',307,711,6],['KTX',984,593,20],['Cổng 1',500,1062],['Cổng 2',1102,975]].forEach(([t,px,py,h])=>{
+  [['Sân bóng mini',540,475],['Nhà xe HSSV',797,455],['Sân bóng chuyền',555,817],['Sân tennis',700,810],['Xưởng cơ khí',798,810,8],['Y tế',307,711,6],['KTX',984,593,20],['Cổng 1',497,1068,7],['Cổng 2',1108,972,5]].forEach(([t,px,py,h])=>{
     const l=makeLabel(t,null,{display:true,fs:20,px:16}); const m=M(px,py); l.position.set(m.x,(h||1)+3,m.z); world.add(l); staticLabels.push(l);
   });
   // các tòa nhà có dữ liệu phòng
@@ -628,10 +724,37 @@ function buildWorld(){
       });
     }
     const c=b.wingGeo[0], bl=makeLabel(b.id,b.basement?`${b.floors} tầng + hầm`:`${b.floors} tầng`,{fs:26,px:30,bg:'--sign',fg:'--sign-ink',stroke:'--sign'});
-    bl.position.set((c.X0+c.X1)/2,elev(b.floors)+6,(c.Z0+c.Z1)/2); bl.userData.bldLabel=b.id; bg.add(bl); staticLabels.push(bl);
+    bl.position.set((c.X0+c.X1)/2,elev(b.floors)+(b.id==='D'?17:6),(c.Z0+c.Z1)/2); bl.userData.bldLabel=b.id; bg.add(bl); staticLabels.push(bl);
   });
+  buildGates(); dShell=buildDShell();
   labelGroup=new THREE.Group(); world.add(labelGroup);
   routeGroup=new THREE.Group(); world.add(routeGroup);
+  // mũi tên nhỏ chạy liên tục: thân kính hơi trong suốt, quầng sáng cùng màu đoạn, có bóng đổ mềm phía sau
+  function neonTex(hex){
+    const N=256, c=document.createElement('canvas'); c.width=c.height=N; const g=c.getContext('2d');
+    const col=new THREE.Color(hex), tint=col.clone().lerp(new THREE.Color(0xffffff),0.55);
+    const P=[[128,64],[188,124],[188,160],[128,104],[68,160],[68,124]];
+    const path=(dx,dy)=>{ g.beginPath(); P.forEach(([x,y],i)=>i?g.lineTo(x+dx,y+dy):g.moveTo(x+dx,y+dy)); g.closePath(); };
+    g.lineJoin='round';
+    // 1. bóng đổ: vẽ hình ra ngoài khung, chỉ giữ lại phần bóng lệch về phía sau mũi tên
+    g.save(); g.shadowColor=dark?'rgba(0,0,0,.75)':'rgba(10,30,20,.38)'; g.shadowBlur=16; g.shadowOffsetX=1000; g.shadowOffsetY=12;
+    path(-1000,0); g.fillStyle='#000'; g.fill(); g.restore();
+    // 2. quầng sáng
+    g.save(); g.shadowColor=col.getStyle(); g.shadowBlur=30; path(0,0); g.globalAlpha=0.55; g.fillStyle=col.getStyle(); g.fill(); g.fill(); g.restore();
+    // 3. thân kính: dải sáng từ trắng sang màu đoạn, hơi trong suốt
+    const gr=g.createLinearGradient(0,64,0,160); gr.addColorStop(0,'rgba(255,255,255,.95)'); gr.addColorStop(1,tint.getStyle());
+    path(0,0); g.globalAlpha=0.66; g.fillStyle=gr; g.fill();
+    // 4. viền sáng mảnh như mép kính
+    g.globalAlpha=1; g.lineWidth=7; g.strokeStyle='#FFFFFF'; g.stroke(); // viền trắng đặc, trên màn hình ≈ 1px
+    const t=new THREE.CanvasTexture(c); t.anisotropy=4; return t;
+  }
+  arrowOutline={}; arrowCore={};
+  Object.entries(SEG_TOK).forEach(([t,tk])=>{
+    arrowOutline[t]=new THREE.MeshBasicMaterial({map:neonTex(tok(tk)),transparent:true,opacity:1,depthTest:false,depthWrite:false,
+      side:THREE.DoubleSide}); });
+  const gNeon=new THREE.PlaneGeometry(2.4,2.4);
+  const ag=new THREE.Group(); world.add(ag); arrowPool=[];
+  for(let k=0;k<140;k++){ const A=new THREE.Group(); const o=new THREE.Mesh(gNeon,arrowOutline.walk); o.renderOrder=9; A.add(o); A.visible=false; ag.add(A); arrowPool.push(A); }
 }
 
 function refreshLabels(){
@@ -657,16 +780,152 @@ function applyFocus(){
       if(state.focus) k = b.id!==state.focus ? 0.2 : 1;
       else if(onRoute) k = !inRoute ? 0.12 : (routeUse.floors.has(b.id+'|'+f) ? 1 : 0.3);
       g.visible=!(state.focus===b.id&&state.floor&&f>state.floor);
+      if(nav.on&&curInfo){ const st=curInfo.steps[nav.k]; if(st.b===b.id&&st.f!=null&&f>st.f) g.visible=false; }
       g.traverse(o=>{ if(!o.material||o.isSprite) return; if(o.userData.op===undefined) o.userData.op=o.material.opacity; o.material.opacity=o.userData.op*k; o.material.depthWrite=k>=1&&!o.userData.noDepth; });
     }
     bldGroups[b.id].group.children.forEach(o=>{ if(!o.userData.bldLabel) return;
       o.visible=!(state.focus===b.id&&state.floor);
       o.material.opacity = (state.focus ? b.id===state.focus : (!onRoute||inRoute)) ? 1 : 0.35; });
   });
+  // vỏ ngoài tòa D: đặc khi xem tổng thể, mờ khi đường đi qua tòa D, ẩn khi xem bên trong
+  if(dShell){
+    let k=1, vis=true;
+    if(state.focus==='D'||(nav.on&&curInfo&&curInfo.steps[nav.k].b==='D')) vis=false;
+    else if(onRoute) k=routeUse.blds.has('D')?0.6:0.45;
+    else if(state.focus) k=0.45;
+    dShell.visible=vis;
+    dShell.traverse(o=>{ if(!o.material) return; (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{ if(m.userData.op===undefined) m.userData.op=m.opacity; m.opacity=m.userData.op*k; m.depthWrite=false; }); });
+  }
   // mặt đất trong suốt bớt khi cần nhìn tầng hầm
   const seeBasement = (state.focus&&BLD[state.focus].basement) || (onRoute&&[...routeUse.floors].some(k=>k.endsWith('|-1')));
   if(groundMesh){ groundMesh.material.opacity=seeBasement?0.35:1; groundMesh.material.depthWrite=!seeBasement; }
   landmarks.forEach(m=>{ const k=onRoute?0.22:1; m.material.opacity=m.userData.op*k; m.material.depthWrite=k>=1; });
+}
+
+/* ---- vật liệu vẽ bằng canvas ---- */
+function canvasTex(w,h,draw,clamp){ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c); t.anisotropy=4; if(!clamp){ t.wrapS=t.wrapT=THREE.RepeatWrapping; } return t; }
+const texRep=(t,u,v)=>{ const c=t.clone(); c.needsUpdate=true; c.repeat.set(u,v); return c; };
+const shade=hex=>new THREE.Color(hex).multiplyScalar(dark?0.72:1);
+function signTex(lines,bg,fg,w,h){ return canvasTex(w||512,h||256,(g,W,H)=>{
+  g.fillStyle=bg; g.fillRect(0,0,W,H); g.strokeStyle=fg; g.lineWidth=6; g.strokeRect(10,10,W-20,H-20);
+  g.fillStyle=fg; g.textAlign='center'; g.textBaseline='middle';
+  lines.forEach((l,i)=>{ g.font=`700 ${l[1]}px "Be Vietnam Pro", sans-serif`; g.fillText(l[0],W/2,H*(i+1)/(lines.length+1)); }); },true); }
+
+/* ---- cổng 1 (đường Võ Văn Ngân) và cổng 2 (đường Chương Dương) ---- */
+function buildGates(){
+  const grp=new THREE.Group(); world.add(grp);
+  const box=(w,h,d,col,x,y,z,o)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial(Object.assign({color:shade(col),roughness:0.8},o||{}))); m.position.set(x,y,z); return m; };
+  // đặt nhóm theo ranh giới: trục x dọc tường rào, trục +z hướng ra đường
+  const place=(G,ax,ay,bx,by,cx,cy)=>{ const a=M(ax,ay), b=M(bx,by), c=M(cx,cy); G.position.set(c.x,0,c.z); G.rotation.y=-Math.atan2(b.z-a.z,b.x-a.x); grp.add(G); };
+  const bars=canvasTex(128,64,(g,W,H)=>{ g.clearRect(0,0,W,H); g.fillStyle='#FFFFFF'; g.fillRect(0,2,W,5); g.fillRect(0,H-7,W,5); for(let x=4;x<W;x+=12) g.fillRect(x,0,3,H); });
+  const fence=(w,h,x,z,G)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:texRep(bars,w/1.6,1),color:shade('#FFFFFF'),transparent:true,alphaTest:0.4,side:THREE.DoubleSide})); m.position.set(x,h/2,z); G.add(m); };
+
+  // Cổng 1: hai trụ gạch đỏ, mái che ngang màu kem có hàng cờ, chốt bảo vệ bên trái với biển tên trường
+  const g1=new THREE.Group();
+  const brick=canvasTex(128,128,(g,W,H)=>{ g.fillStyle='#B4553A'; g.fillRect(0,0,W,H); g.fillStyle='#93432E'; for(let y=0;y<H;y+=16){ g.fillRect(0,y,W,2); for(let x=((y/16)%2)*16;x<W;x+=32) g.fillRect(x,y,2,16);} });
+  [-7.5,7.5].forEach(x=>g1.add(box(1.4,6,1.4,'#FFFFFF',x,3,0,{map:texRep(brick,1,4)})));
+  g1.add(box(18,0.9,4.6,'#E8DCC2',0,6.45,-0.6));
+  g1.add(box(18.4,0.25,4.9,'#C2A77F',0,7.0,-0.6));
+  ['#2D6CC0','#F2C230','#D7262E','#E0508A','#E36F2A','#2D6CC0','#F2C230','#D7262E','#E36F2A'].forEach((c,i)=>{
+    const x=-7+i*1.75, pole=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,2.6,6),new THREE.MeshStandardMaterial({color:shade('#D9DDE0')}));
+    pole.position.set(x,8.4,0.9); g1.add(pole);
+    const f=new THREE.Mesh(new THREE.PlaneGeometry(0.55,1.4),new THREE.MeshStandardMaterial({color:shade(c),side:THREE.DoubleSide})); f.position.set(x+0.3,9.0,0.9); g1.add(f); });
+  g1.add(box(6,3.8,5,'#ECE5D6',-11.6,1.9,-0.8));
+  g1.add(box(6.1,0.9,5.1,'#FFFFFF',-11.6,0.45,-0.8,{map:texRep(brick,3,1)}));
+  g1.add(box(6.8,0.3,5.8,'#E8DCC2',-11.6,3.95,-0.8));
+  const s1=new THREE.Mesh(new THREE.PlaneGeometry(3,2.6),new THREE.MeshStandardMaterial({map:signTex([['TRƯỜNG CAO ĐẲNG',40],['CÔNG NGHỆ THỦ ĐỨC',40],['53 Võ Văn Ngân',26]],'#7E2B27','#F3E6C8',512,440),color:shade('#FFFFFF')}));
+  s1.position.set(-12.4,2.1,1.73); g1.add(s1);
+  fence(10,1.9,13.4,-0.4,g1);                                     // cổng trượt đang mở, xếp sau trụ phải
+  place(g1,390,1022,522,1078,497,1068);
+
+  // Cổng 2: trụ ốp gạch xanh mũ trắng, cửa xếp inox, hàng rào song trắng, biển tên nền nâu trên bệ thấp
+  const g2=new THREE.Group();
+  const tile=canvasTex(64,64,(g,W,H)=>{ g.fillStyle='#3D9BD6'; g.fillRect(0,0,W,H); g.fillStyle='#BFE2F5'; g.fillRect(0,0,W,4); });
+  const pillar=x=>{ g2.add(box(1.1,3.6,1.1,'#FFFFFF',x,1.8,0,{map:texRep(tile,1,7)})); g2.add(box(1.45,0.35,1.45,'#F4F6F7',x,3.78,0)); };
+  [-6.2,6.2,-15,14.6].forEach(pillar);
+  for(let i=0;i<46;i++){ const sl=box(0.05,1.9,0.5,'#DCE1E5',-5.6+i*0.245,1.05,0,{metalness:0.15,roughness:0.4}); sl.rotation.y=(i%2?1:-1)*0.65; g2.add(sl); }
+  g2.add(box(11.4,0.1,0.25,'#DCE1E5',0,2.05,0,{metalness:0.15,roughness:0.4}));
+  fence(8.2,2.2,-10.6,0,g2); fence(6,2.2,17.9,0,g2);
+  g2.add(box(7.6,1.1,0.7,'#DADFE2',10.4,0.55,0));
+  g2.add(box(6.1,1.8,0.18,'#3A2A1E',10.4,1.95,0.1));
+  const s2=new THREE.Mesh(new THREE.PlaneGeometry(5.8,1.6),new THREE.MeshStandardMaterial({map:signTex([['TRƯỜNG CAO ĐẲNG CÔNG NGHỆ THỦ ĐỨC',34],['Cơ sở · Đường Chương Dương',24]],'#3A2A1E','#E8C46A',768,212),color:shade('#FFFFFF')}));
+  s2.position.set(10.4,1.95,0.2); g2.add(s2);
+  place(g2,1102,985,1198,790,1108,972);
+}
+
+/* ---- tòa D: vỏ ngoài theo phối cảnh — tháp lõi có logo, hai cánh ban công chữ V, khối đế mặt cong bằng kính ---- */
+function buildDShell(){
+  const b=BLD.D, [core,east,,south]=b.wingGeo, g=new THREE.Group(); world.add(g);
+  const mat=o=>new THREE.MeshStandardMaterial(Object.assign({transparent:true,opacity:0.42,depthWrite:false,roughness:0.85,color:shade('#FFFFFF')},o));
+  const balcony=canvasTex(256,256,(g2,W,H)=>{
+    g2.fillStyle='#F3F5F6'; g2.fillRect(0,0,W,H);
+    g2.fillStyle='#7F95A3'; g2.fillRect(36,26,184,132);
+    g2.fillStyle='#E7ECEF'; for(let y=30;y<156;y+=12) g2.fillRect(150,y,66,6);
+    g2.fillStyle='#FFFFFF'; g2.fillRect(0,166,W,58);
+    g2.fillStyle='#9AA9B2'; for(let x=30;x<W-30;x+=26) g2.fillRect(x,186,12,8);
+    g2.fillStyle='#2E8FD6'; g2.fillRect(0,0,20,H); g2.fillRect(W-20,0,20,H);
+    g2.fillStyle='#C8D2D8'; g2.fillRect(0,H-8,W,8); });
+  const plain=canvasTex(128,128,(g2,W,H)=>{ g2.fillStyle='#F1F3F4'; g2.fillRect(0,0,W,H); g2.fillStyle='#2E8FD6'; g2.fillRect(0,0,W,10); g2.fillStyle='#DDE3E6'; g2.fillRect(0,H-4,W,4); });
+  const curtain=canvasTex(256,128,(g2,W,H)=>{   // 2 gian x 1 tầng: trụ xám, kính xanh nhạt, một nẹp ngang
+    g2.fillStyle='#4A5660'; g2.fillRect(0,0,W,H);
+    g2.fillStyle='#B9D3D6'; g2.fillRect(16,10,104,104); g2.fillRect(136,10,104,104);
+    g2.fillStyle='#E4EEEE'; g2.fillRect(16,58,104,4); g2.fillRect(136,58,104,4); });
+  const coreTex=canvasTex(256,1024,(g2,W,H)=>{
+    g2.fillStyle='#EDE4D3'; g2.fillRect(0,0,W,H);
+    const gr=g2.createLinearGradient(0,0,0,H); gr.addColorStop(0,'#BFE0CF'); gr.addColorStop(1,'#8FB9A6');
+    g2.fillStyle=gr; g2.fillRect(70,40,116,H-40);
+    g2.fillStyle='#F6F7F5'; for(let y=40;y<H;y+=80) g2.fillRect(70,y,116,4); g2.fillRect(126,40,4,H-40);
+    g2.fillStyle='#FFFFFF'; g2.fillRect(112,150,32,330);
+    g2.beginPath(); g2.arc(128,130,42,0,Math.PI*2); g2.fillStyle='#FFFFFF'; g2.fill(); g2.lineWidth=9; g2.strokeStyle='#1F5FAE'; g2.stroke();
+    g2.fillStyle='#1F5FAE'; g2.font='700 24px sans-serif'; g2.textAlign='center'; g2.textBaseline='middle'; g2.fillText('TDC',128,131); },true);
+  const glassGrid=canvasTex(128,128,(g2,W,H)=>{ g2.fillStyle='rgba(150,200,222,.55)'; g2.fillRect(0,0,W,H); g2.fillStyle='rgba(255,255,255,.95)'; g2.fillRect(0,H-5,W,5); g2.fillRect(0,0,4,H); g2.fillRect(W/2-2,0,4,H); });
+  const roof=mat({color:shade('#D5DBDE')});
+  const y0=elev(1)-0.15, wingTop=elev(12), coreTop=y0+12.4*FH;
+  const fl=h=>Math.max(1,Math.round(h/FH));
+  const reg=m=>{ m.userData.bld='D'; m.renderOrder=3; g.add(m); pickables.push(m); return m; };
+  // khối hộp có mặt ban công / mặt trơn theo từng hướng: faces = {px,nx,pz,nz} = [texture, bề rộng 1 gian]
+  function shellBox(x0,z0,x1,z1,ya,yb,faces){
+    const w=x1-x0+0.6, d=z1-z0+0.6, h=yb-ya;
+    const side=(f,len)=>mat({map:texRep(f?f[0]:plain,Math.max(1,Math.round(len/(f?f[1]:6))),fl(h))});
+    const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),[side(faces.px,d),side(faces.nx,d),roof,roof,side(faces.pz,w),side(faces.nz,w)]);
+    m.position.set((x0+x1)/2,ya+h/2,(z0+z1)/2); return reg(m);
+  }
+  shellBox(east.X0,east.Z0,east.X1-9,east.Z1,y0,wingTop,{pz:[balcony,3.6]});   // cánh Đông, ban công nhìn vào sân trước
+  shellBox(south.X0,south.Z0,south.X1,south.Z1,y0,wingTop,{px:[balcony,3.6]}); // cánh Nam
+  shellBox(core.X0,core.Z0,core.X1,core.Z1,y0,wingTop+FH*0.4,{});                // khối lõi phía sau
+  // tháp lõi có logo: xoay 45° hướng ra khoảng giữa hai cánh, cao vượt hai cánh
+  const ct=new THREE.Mesh(new THREE.BoxGeometry(11,coreTop-y0,11),[mat({color:shade('#EDE4D3')}),mat({color:shade('#EDE4D3')}),roof,roof,mat({map:coreTex}),mat({color:shade('#EDE4D3')})]);
+  ct.position.set(core.X1-3.2,(y0+coreTop)/2,core.Z1-3.2); ct.rotation.y=Math.PI/4; reg(ct);
+  const crown=new THREE.Mesh(new THREE.BoxGeometry(0.8,5,0.8),mat({color:shade('#F4F4F2'),opacity:0.8})); crown.renderOrder=3; crown.position.set(core.X1-3.2+3.0,coreTop+2.5,core.Z1-3.2+3.0); g.add(crown);
+  // tháp kính thang bộ ở đầu cánh Đông, khung xanh, mũ lam trắng dạng chữ V
+  const gx0=east.X1-9, gx1=east.X1+0.3, gz0=east.Z0-0.3, gz1=east.Z1+3.2, gh=elev(12)+FH*0.6-y0;
+  const glass=new THREE.Mesh(new THREE.BoxGeometry(gx1-gx0,gh,gz1-gz0),mat({map:texRep(glassGrid,3,fl(gh)),opacity:0.34,roughness:0.15,metalness:0.2}));
+  glass.position.set((gx0+gx1)/2,y0+gh/2,(gz0+gz1)/2); reg(glass);
+  const edges=new THREE.LineSegments(new THREE.EdgesGeometry(glass.geometry),new THREE.LineBasicMaterial({color:shade('#2E8FD6'),transparent:true}));
+  edges.position.copy(glass.position); edges.renderOrder=3; g.add(edges);
+  for(let i=0;i<9;i++){ const L=FH*(1.2+2.6*(1-Math.abs(i-4)/4)); const fin=new THREE.Mesh(new THREE.BoxGeometry(0.22,L,0.5),mat({color:shade('#FFFFFF'),opacity:0.8})); fin.renderOrder=3;
+    fin.position.set(gx0+0.6+i*((gx1-gx0-1.2)/8),y0+gh-L/2,gz1+0.35); g.add(fin); }
+  // khối đế mặt cong: tầng trệt là hàng cột, 6 tầng phía trên bọc kính khung xám
+  const sh=new THREE.Shape(PODIUM.map(([px,py])=>{ const m=M(px,py); return new THREE.Vector2(m.x,-m.z); }));
+  const pBot=elev(2)-0.3, pTop=elev(8), pH=pTop-pBot;
+  const cap=new THREE.Mesh(new THREE.ShapeGeometry(sh).rotateX(-Math.PI/2),mat({color:shade('#E3E7E9'),side:THREE.DoubleSide}));
+  cap.position.y=pTop+0.05; reg(cap);
+  { const P=PODIUM.slice(1).map(([px,py])=>M(px,py)), pos=[], uv=[], idx=[]; let acc=0;
+    const cx=PODIUM.reduce((a,[px])=>a+M(px,0).x,0)/PODIUM.length, cz=PODIUM.reduce((a,[,py])=>a+M(0,py).z,0)/PODIUM.length;
+    P.forEach((p,k)=>{
+      if(k) acc+=Math.hypot(p.x-P[k-1].x,p.z-P[k-1].z);
+      const a=P[Math.max(0,k-1)], b=P[Math.min(P.length-1,k+1)]; let nx=b.z-a.z, nz=-(b.x-a.x); const L=Math.hypot(nx,nz)||1; nx/=L; nz/=L;
+      if((p.x-cx)*nx+(p.z-cz)*nz<0){ nx=-nx; nz=-nz; }       // pháp tuyến hướng ra ngoài
+      const x=p.x+nx*0.4, z=p.z+nz*0.4, u=acc/6.8;
+      pos.push(x,pBot,z, x,pTop,z); uv.push(u,0, u,6);
+      if(k){ const i=k*2; idx.push(i-2,i-1,i, i-1,i+1,i); } });
+    const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2)); geo.setIndex(idx); geo.computeVertexNormals();
+    reg(new THREE.Mesh(geo,mat({map:texRep(curtain,1,1),side:THREE.DoubleSide,opacity:0.5}))); }
+  const cen=PODIUM.reduce((a,[px,py])=>{ const m=M(px,py); a.x+=m.x/PODIUM.length; a.z+=m.z/PODIUM.length; return a; },{x:0,z:0});
+  PODIUM.slice(2,-1).forEach(([px,py])=>{ const m=M(px,py); const c=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,FH,8),mat({color:shade('#F2F2EF'),opacity:0.7})); c.renderOrder=3;
+    c.position.set(m.x+(cen.x-m.x)*0.06,elev(1)+FH/2-0.15,m.z+(cen.z-m.z)*0.06); g.add(c); });
+  return g;
 }
 
 function cyl(a,b,r,mat){
@@ -676,9 +935,9 @@ function cyl(a,b,r,mat){
 }
 const SEG_TOK={out:'--seg-out',door:'--seg-in',walk:'--seg-in',stairs:'--seg-stairs',elevator:'--seg-elev'};
 let segColors=[];
-function drawRoute(r){
-  while(routeGroup.children.length){ const o=routeGroup.children.pop(); o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose(); }
-  segColors=[];
+function drawRoute(r,info){
+  while(routeGroup.children.length){ const o=routeGroup.children.pop(); o.geometry&&o.geometry.dispose(); if(o.material){ o.material.map&&o.material.map.dispose(); o.material.dispose(); } }
+  segColors=[]; segMeshes=[]; segTypes=[]; msSprites=[];
   units.forEach(u=>{ if(u.mesh&&u.mesh.userData.base) u.mesh.material.color.copy(u.mesh.userData.base); });
   routePts=[]; routeDists=[0]; routeLen=0; routeUse=null;
   const cRoute=new THREE.Color(tok('--route')), d=byId[state.to];
@@ -686,25 +945,34 @@ function drawRoute(r){
   if(!r) return;
   routeUse={blds:new Set(),floors:new Set()};
   r.path.forEach(id=>{ const n=nodes[id]; if(n.b&&n.level){ routeUse.blds.add(n.b); routeUse.floors.add(n.b+'|'+n.level); } });
-  const mats={};
-  const matFor=t=>mats[t]||(mats[t]=(()=>{ const c=new THREE.Color(tok(SEG_TOK[t]));
-    return {c, solid:new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:0.3}),
-      // lớp mờ vẽ đè lên mọi thứ: đoạn bị tường, sàn che vẫn nhìn thấy
-      ghost:new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0.4,depthTest:false,depthWrite:false})}; })());
   routePts=r.path.map(id=>{ const n=nodes[id]; return new THREE.Vector3(n.x,n.level===0?0.9:elev(n.level,0.8),n.z); });
   for(let i=1;i<routePts.length;i++){
-    const m=matFor(r.edges[i-1].type); segColors.push(m.c);
-    const c=cyl(routePts[i-1],routePts[i],0.75,m.solid); if(c) routeGroup.add(c);
-    const g=cyl(routePts[i-1],routePts[i],0.5,m.ghost); if(g){ g.renderOrder=5; routeGroup.add(g); }
+    const t=r.edges[i-1].type, c=new THREE.Color(tok(SEG_TOK[t])); segColors.push(c); segTypes.push(t);
+    const solid=new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:0.3,transparent:true});
+    // lớp mờ vẽ đè lên mọi thứ: đoạn bị tường, sàn che vẫn nhìn thấy
+    const ghost=new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0.4,depthTest:false,depthWrite:false});
+    const cm=cyl(routePts[i-1],routePts[i],0.75,solid); if(cm) routeGroup.add(cm);
+    const g=cyl(routePts[i-1],routePts[i],0.5,ghost); if(g){ g.renderOrder=5; routeGroup.add(g); }
     routeLen+=routePts[i].distanceTo(routePts[i-1]); routeDists.push(routeLen);
-    const j=new THREE.Mesh(new THREE.SphereGeometry(0.75,12,10),m.solid); j.position.copy(routePts[i]); routeGroup.add(j);
+    const j=new THREE.Mesh(new THREE.SphereGeometry(0.75,12,10),solid); j.position.copy(routePts[i]); routeGroup.add(j);
+    segMeshes.push({solid,ghost});
   }
+  // mốc đánh số tại điểm bắt đầu mỗi bước (bước đầu và cuối đã có nhãn riêng)
+  if(info) info.steps.forEach((st,k)=>{ if(st.t==='start'||st.t==='end') return;
+    const sp=makeLabel(String(k+1),null,{fs:20,px:20,bg:STEP_TOK[st.t],fg:'--panel',stroke:STEP_TOK[st.t]});
+    sp.position.copy(routePts[st.i0]).add(new THREE.Vector3(0,3.4,0)); sp.userData.step=k; sp.userData.px0=sp.userData.px;
+    routeGroup.add(sp); msSprites.push(sp); });
   // tô màu các khối thang bộ / thang máy nằm trên đường đi
   r.path.forEach(id=>{ const u=byId[id]; if(u&&u.mesh&&(u.kind==='stairs'||u.kind==='elevator')) u.mesh.material.color.set(tok(u.kind==='stairs'?'--seg-stairs':'--seg-elev')); });
   const pin=new THREE.Mesh(new THREE.ConeGeometry(1.8,4.8,16),new THREE.MeshStandardMaterial({color:tok('--sign')}));
   pin.rotation.x=Math.PI; pin.position.copy(routePts[0]).add(new THREE.Vector3(0,3.6,0)); routeGroup.add(pin);
-  mover=new THREE.Mesh(new THREE.SphereGeometry(1.5,16,12),new THREE.MeshStandardMaterial({color:0xffffff,emissive:cRoute,emissiveIntensity:0.8}));
-  routeGroup.add(mover);
+}
+// làm nổi đoạn của mốc đang xem, làm mờ phần còn lại
+function highlightStep(){
+  let a=-1,b=-1;
+  if(nav.on&&curInfo){ const st=curInfo.steps[nav.k]; if(st.i1>st.i0){ a=st.i0; b=st.i1; } }
+  segMeshes.forEach((m,i)=>{ const on=a<0||(i>=a&&i<b); m.solid.opacity=on?1:0.2; m.solid.depthWrite=on; m.ghost.opacity=on?0.45:0.06; });
+  msSprites.forEach(sp=>{ const cur=nav.on&&sp.userData.step===nav.k; sp.userData.px=sp.userData.px0*(cur?1.5:1); sp.material.opacity=(!nav.on||cur)?1:0.55; sp.renderOrder=cur?12:10; });
 }
 
 /* ---- máy quay ---- */
@@ -735,15 +1003,64 @@ renderer.domElement.addEventListener('pointerup',e=>{
   if(ud.unitId&&(byId[ud.unitId].kind==='room'||byId[ud.unitId].kind==='wc')) pickDest(ud.unitId);
 });
 
-function update(reframe){
+function update(reframe,keepNav){
   fromSel.value=state.from||'';
   const a=byId[state.from], d=byId[state.to];
   const r=(!a||!d||state.from===state.to)?null:route(targetNode(a),targetNode(d),state.noStairs);
-  renderPanel(r?buildSteps(r,a,d):null); renderGeo(); drawRoute(r);
+  curInfo=r?buildSteps(r,a,d):null;
+  if(!keepNav||!curInfo) nav.on=false; else nav.k=Math.min(nav.k,curInfo.steps.length-1);
+  renderPanel(curInfo); renderGeo(); drawRoute(r,curInfo);
   if(reframe&&state.focus){ state.focus=null; state.floor=0; renderBars(); }
-  applyFocus(); refreshLabels();
+  applyFocus(); refreshLabels(); highlightStep(); renderNavCard();
   if(reframe) frameRouteOrCampus();
 }
+
+/* ---- chỉ đường theo từng mốc, giống chế độ dẫn đường của bản đồ số ---- */
+function renderNavCard(){
+  const card=$('#navcard'); card.hidden=!curInfo; if(!curInfo) return;
+  $('#ncIdle').hidden=nav.on; $('#ncRun').hidden=!nav.on;
+  $('#ncSum').innerHTML=`${Math.round(curInfo.walk+curInfo.out)} m<span>${fmtTime(curInfo.secs)}</span>`;
+  if(!nav.on) return;
+  const st=curInfo.steps[nav.k], N=curInfo.steps.length, bd=$('#ncBadge');
+  bd.textContent=nav.k+1; bd.style.background=`var(${STEP_TOK[st.t]})`;
+  $('#ncCount').textContent=`Mốc ${nav.k+1} / ${N}`; $('#ncText').innerHTML=st.html;
+  $('#ncProg').style.width=(N>1?nav.k/(N-1)*100:100)+'%';
+  $('#navPrev').disabled=nav.k===0; $('#navNext').textContent=nav.k===N-1?'Hoàn tất':'Tiếp';
+}
+function markList(){
+  document.querySelectorAll('#summary li[data-step]').forEach(li=>li.classList.toggle('cur',nav.on&&+li.dataset.step===nav.k));
+  const cur=document.querySelector('#summary li.cur');
+  if(cur&&window.matchMedia('(min-width:761px)').matches) cur.scrollIntoView({block:'nearest',behavior:reduce.matches?'auto':'smooth'});
+}
+function goStep(k){
+  if(!curInfo) return;
+  if(state.focus){ state.focus=null; state.floor=0; renderBars(); }
+  nav.on=true; nav.k=Math.max(0,Math.min(curInfo.steps.length-1,k));
+  applyFocus(); highlightStep(); renderNavCard(); markList(); flyToStep(nav.k);
+}
+function startNav(){ goStep(0); if(window.matchMedia('(max-width:760px)').matches) $('.mapcol').scrollIntoView({block:'start',behavior:reduce.matches?'auto':'smooth'}); }
+function exitNav(){ nav.on=false; applyFocus(); highlightStep(); renderNavCard(); markList(); frameRouteOrCampus(); }
+function flyPose(target,pos){
+  if(reduce.matches){ controls.target.copy(target); camera.position.copy(pos); return; }
+  tween={t0:performance.now(),dur:900,fromT:controls.target.clone(),toT:target,fromP:camera.position.clone(),toP:pos};
+}
+function flyToStep(k){
+  const st=curInfo.steps[k], pts=routePts.slice(st.i0,st.i1+1), a=pts[0], b=pts[pts.length-1];
+  const isV=st.t==='stairs'||st.t==='elev';
+  const dir=new THREE.Vector3(b.x-a.x,0,b.z-a.z);
+  if(dir.lengthSq()<1){ const nx=routePts[Math.min(st.i1+1,routePts.length-1)], pv=routePts[Math.max(st.i0-1,0)]; dir.set(nx.x-pv.x,0,nx.z-pv.z); }
+  if(isV||dir.lengthSq()<1){ dir.subVectors(controls.target,camera.position); dir.y=0; } // thang: giữ hướng nhìn hiện tại, nhìn ngang
+  if(dir.lengthSq()<1e-6) dir.set(0,0,-1);
+  dir.normalize();
+  const bx=new THREE.Box3().setFromPoints(pts), c=bx.getCenter(new THREE.Vector3()), sz=bx.getSize(new THREE.Vector3());
+  const span=Math.max(sz.x,sz.z,sz.y*1.3,16), dist=span*1.05+24, pitch=isV?0.4:0.9; // góc nhìn xuống: đi bộ ~52°, thang ~23°
+  const pos=c.clone().addScaledVector(dir,-Math.cos(pitch)*dist); pos.y+=Math.sin(pitch)*dist;
+  flyPose(c,pos);
+}
+$('#navStart').addEventListener('click',startNav);
+$('#navPrev').addEventListener('click',()=>goStep(nav.k-1));
+$('#navNext').addEventListener('click',()=>{ if(curInfo&&nav.k>=curInfo.steps.length-1) exitNav(); else goStep(nav.k+1); });
+$('#navExit').addEventListener('click',exitNav);
 
 function resize(){ const w=host.clientWidth,h=host.clientHeight; if(!w||!h) return; renderer.setSize(w,h,false); renderer.domElement.style.width=w+'px'; renderer.domElement.style.height=h+'px'; camera.aspect=w/h; camera.updateProjectionMatrix(); }
 new ResizeObserver(resize).observe(host);
@@ -792,6 +1109,9 @@ window.addEventListener('keydown',e=>{
   const el=document.activeElement, tag=el&&el.tagName;
   if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'||e.metaKey||e.ctrlKey||e.altKey) return;
   if(e.key==='h'||e.key==='H'){ goHome(); return; }
+  if(curInfo&&(e.key==='n'||e.key==='N')){ nav.on&&nav.k>=curInfo.steps.length-1?exitNav():goStep(nav.on?nav.k+1:0); return; }
+  if(nav.on&&(e.key==='p'||e.key==='P')){ goStep(nav.k-1); return; }
+  if(nav.on&&e.key==='Escape'){ exitNav(); return; }
   const a=KEYS[e.key.toLowerCase()]; if(!a) return; e.preventDefault(); held.add(a);
 });
 window.addEventListener('keyup',e=>{ const a=KEYS[(e.key||'').toLowerCase()]; if(a) held.delete(a); });
@@ -803,10 +1123,43 @@ function setDragMode(pan){
   $('#modeRot').classList.toggle('on',!pan); $('#modeRot').setAttribute('aria-pressed',!pan);
   $('#modePan').classList.toggle('on',pan); $('#modePan').setAttribute('aria-pressed',pan);
 }
+document.querySelectorAll('.mini').forEach(btn=>{
+  const box=btn.closest('[data-box]');
+  const set=m=>{ box.classList.toggle('min',m); btn.setAttribute('aria-expanded',String(!m));
+    const lb=(m?'Mở rộng ':'Thu gọn ')+box.dataset.name; btn.setAttribute('aria-label',lb); btn.title=lb; };
+  set(false); btn.addEventListener('click',()=>set(!box.classList.contains('min')));
+});
 $('#modeRot').addEventListener('click',()=>setDragMode(false));
 $('#modePan').addEventListener('click',()=>setDragMode(true));
 setDragMode(false);
 renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
+const dirV=new THREE.Vector3(), nrmV=new THREE.Vector3(), sideV=new THREE.Vector3(), basisM=new THREE.Matrix4();
+function updateArrows(now){
+  let n=0;
+  if(routePts.length>1&&arrowPool.length){
+    let from=0,to=routeLen;
+    if(nav.on&&curInfo){ const st=curInfo.steps[nav.k]; if(st.i1>st.i0){ from=routeDists[st.i0]; to=routeDists[st.i1]; } }
+    const L=Math.max(0.01,to-from), dist=camera.position.distanceTo(controls.target);
+    // mũi tên nhỏ, cách đều, nối nhau liên tục
+    const size=THREE.MathUtils.clamp(dist*0.011,1.6,7), spacing=Math.max(size*1.5,2.6);
+    n=Math.min(arrowPool.length,Math.max(1,Math.floor(L/spacing)));
+    const sp=L/n, off=reduce.matches?sp*0.5:((now/1000)*Math.max(6,size*2))%sp;
+    for(let q=0;q<n;q++){
+      const d=from+((off+q*sp)%L); let i=1; while(i<routeDists.length-1&&routeDists[i]<d) i++;
+      const a=routePts[i-1], b=routePts[i], sl=routeDists[i]-routeDists[i-1]||1, A=arrowPool[q];
+      A.visible=true; A.position.lerpVectors(a,b,(d-routeDists[i-1])/sl);
+      dirV.subVectors(b,a); if(dirV.lengthSq()>1e-6){ dirV.normalize();
+        // mặt mũi tên: nằm ngang khi đi bộ, dựng đứng quay về người xem khi lên xuống thang
+        if(Math.abs(dirV.y)>0.7){ nrmV.subVectors(camera.position,A.position); nrmV.y=0; if(nrmV.lengthSq()<1e-6) nrmV.set(0,0,1); nrmV.normalize(); }
+        else nrmV.copy(UP);
+        sideV.crossVectors(dirV,nrmV).normalize(); nrmV.crossVectors(sideV,dirV).normalize();
+        basisM.makeBasis(sideV,dirV,nrmV); A.quaternion.setFromRotationMatrix(basisM); }
+      A.position.addScaledVector(nrmV,0.35);
+      const ty=segTypes[i-1]||'walk'; A.scale.setScalar(size); A.children[0].material=arrowOutline[ty];
+    }
+  }
+  for(let q=n;q<arrowPool.length;q++) arrowPool[q].visible=false;
+}
 function scaleLabel(sp,k){ sp.getWorldPosition(tmp); const d=tmp.distanceTo(camera.position); const h=Math.min(sp.userData.px*d*k,sp.userData.maxH); sp.scale.set(h*sp.userData.aspect,h,1); }
 function tick(now){
   if(tween){ let p=Math.min(1,(now-tween.t0)/tween.dur); p=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
@@ -815,26 +1168,24 @@ function tick(now){
   held.forEach(a=>applyAct(a,dt));
   controls.update(); clampTarget();
   const k=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,host.clientHeight);
-  staticLabels.forEach(s=>scaleLabel(s,k)); labelGroup&&labelGroup.children.forEach(s=>scaleLabel(s,k));
-  if(mover&&routePts.length>1){
-    const s=reduce.matches?routeLen:((now-t0)/1000*35)%(routeLen+20), d=Math.min(s,routeLen);
-    let i=1; while(i<routeDists.length-1&&routeDists[i]<d) i++;
-    const seg=routeDists[i]-routeDists[i-1]||1; mover.position.lerpVectors(routePts[i-1],routePts[i],(d-routeDists[i-1])/seg);
-    if(segColors[i-1]) mover.material.emissive.copy(segColors[i-1]);
-  }
+  staticLabels.forEach(s=>scaleLabel(s,k)); labelGroup&&labelGroup.children.forEach(s=>scaleLabel(s,k)); msSprites.forEach(s=>scaleLabel(s,k));
+  updateArrows(now);
   renderer.render(scene,camera); requestAnimationFrame(tick);
 }
 
-function rebuild(){ buildWorld(); applyFocus(); update(false); }
+function rebuild(){ buildWorld(); applyFocus(); update(false,true); }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rebuild);
 new MutationObserver(rebuild).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
 /* ---- trạng thái ban đầu và nút Đặt lại ---- */
 const HOME=new THREE.Vector3(0,0,-5);
 $('#summary').addEventListener('click',e=>{
+  if(e.target.closest('button[data-nav]')){ startNav(); return; }
+  const li=e.target.closest('li[data-step]'); if(li){ goStep(+li.dataset.step); if(window.matchMedia('(max-width:760px)').matches) $('.mapcol').scrollIntoView({block:'start',behavior:reduce.matches?'auto':'smooth'}); return; }
   const b=e.target.closest('button[data-from]'); if(!b) return;
   state.from=b.dataset.from; state.to=b.dataset.to; q.value=tLabel(byId[state.to]); update(true);
 });
+$('#summary').addEventListener('keydown',e=>{ const li=e.target.closest('li[data-step]'); if(li&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); goStep(+li.dataset.step); } });
 $('#reset').addEventListener('click',()=>{
   Object.assign(state,{from:null,to:null,noStairs:false,focus:null,floor:0});
   q.value=''; results.hidden=true; wcBox.checked=false;
