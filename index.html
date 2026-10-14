@@ -175,26 +175,37 @@ const BUILDINGS=[
   {id:'C',name:'Tòa C',floors:3,elevator:false,fmt:(f,k)=>`C${f}${p2(k)}`,
     wings:[[875,703,1100,735],[1105,670,1145,735]],
     doors:{EC:'cửa phía Nam',P13:'cửa phía Đông'}},
-  {id:'D',name:'Tòa D',floors:5,elevator:true,fmt:(f,k)=>`D${p2(f)}-${p2(k)}`,
-    wings:[[878,757,1128,835],[878,835,965,912]],
-    doors:{ED1:'cửa phía Nam',ED2:'cửa phía Tây'}},
+  // Tòa D: 11 tầng nổi + 1 tầng hầm. Lõi thang (tháp có logo) ở góc, hai cánh tháp chữ V,
+  // khối đế mặt cong 8 tầng ở giữa, sân thượng trên tầng 8.
+  {id:'D',name:'Tòa D',floors:11,basement:true,elevator:true,fmt:(f,k)=>f<0?`DH-${p2(k)}`:`D${p2(f)}-${p2(k)}`,
+    wings:[[878,757,925,805,{minF:-1}],
+           [925,757,1128,790,{stairsAt:'end'}],
+           [925,795,1060,862,{minF:-1,maxF:8,stairsAt:'end',shape:'podium'}],
+           [878,805,915,912,{stairsAt:'end'}]],
+    doors:{ED1:'sảnh chính (mặt cong)',ED2:'cửa phía Tây'}},
 ];
 const BLD=Object.fromEntries(BUILDINGS.map(b=>[b.id,b]));
 // Tên phòng giả định cho một vài phòng, còn lại là phòng học / phòng thực hành
 const NAMES={A101:'Phòng Đào tạo',A102:'Phòng Công tác HSSV',A103:'Phòng Tài chính – Kế toán',A104:'Phòng Tuyển sinh',A105:'Phòng Hành chính',
-  H101:'Hội trường H',H201:'Phòng họp lớn','D01-01':'Thư viện','D01-02':'Phòng tự học',B101:'Phòng thực hành Điện',C101:'Phòng thực hành Ô tô'};
-const defaultName=b=>({A:'Phòng học',B:'Phòng thực hành',C:'Phòng thực hành',D:'Phòng học',H:'Phòng chức năng'})[b];
+  H101:'Hội trường H',H201:'Phòng họp lớn','D01-01':'Thư viện','D01-02':'Phòng tự học','DH-01':'Phòng kỹ thuật điện',B101:'Phòng thực hành Điện',C101:'Phòng thực hành Ô tô'};
+const defaultName=(b,f)=>f<0?'Khu để xe tầng hầm':({A:'Phòng học',B:'Phòng thực hành',C:'Phòng thực hành',D:'Phòng học',H:'Phòng chức năng'})[b];
+BUILDINGS.forEach(b=>{ b.levels=[...(b.basement?[-1]:[]),...Array.from({length:b.floors},(_,i)=>i+1)]; });
+const fl=f=>f<0?'tầng hầm':'tầng '+f;           // tên tầng để đọc
+const flShort=f=>f<0?'Hầm':'T'+f;
+const levelGap=(b,f1,f2)=>{ const L=BLD[b].levels; return Math.abs(L.indexOf(f2)-L.indexOf(f1)); };
+// mặt bằng khối đế cong của tòa D (toạ độ sơ đồ)
+const PODIUM=(()=>{ const pts=[[915,790],[1128,790],[1128,830]]; for(let t=0.1;t<=1.001;t+=0.1){ const a=1-t; pts.push([a*a*1128+2*a*t*1085+t*t*970, a*a*830+2*a*t*905+t*t*915]); } pts.push([915,912]); return pts; })();
 
 // Nút ngoài trời: [x, y trên sơ đồ, gợi nhớ khi đi ngang qua]
 const OUT={
   G1:[500,1062], P1:[575,992], P2:[622,936], EA:[525,935], EA2:[300,935],
   P3:[735,928], P3b:[798,933,'Xưởng cơ khí'], P4:[870,940], P5:[1000,955], G2:[1102,975],
   P6:[635,881], HA:[450,881], W1:[398,881], EH3:[398,815], P12:[398,746], BH:[450,746],
-  P7:[635,746,'Công viên cây xanh'], TEN:[700,746,'Sân tennis'], P9:[862,746], EC:[975,746,'tòa C'], P13:[1150,746], P14:[1150,900,'tòa D'],
+  P7:[635,746,'Công viên cây xanh'], TEN:[700,746,'Sân tennis'], P9:[862,746], EC:[975,746,'tòa C'], P13:[1150,746], P14:[1150,900],
   VB:[635,815,'Sân bóng chuyền'], P8:[638,600], P8n:[640,550], SB:[540,550,'Sân bóng mini'], NX:[760,550,'Nhà xe HSSV'],
-  P11:[865,550], P11b:[862,595,'Ký túc xá'], EK:[897,595], ED2:[862,800], ED1:[1010,842], YT:[307,746,'Trạm Y tế'], XW:[798,872]
+  P11:[865,550], P11b:[862,595,'Ký túc xá'], EK:[897,595], ED2:[862,800], ED1:[1062,897], YT:[307,746,'Trạm Y tế'], XW:[798,872]
 };
-const OUT_EDGES='G1-P1 P1-P2 P2-EA EA-EA2 P2-P3 P3-P3b P3b-P4 P4-P5 P5-G2 P2-P6 P6-HA HA-W1 W1-EH3 EH3-P12 P12-BH BH-P7 P7-TEN TEN-P9 P9-EC EC-P13 P13-P14 P14-G2 P6-VB VB-P7 P7-P8 P8-P8n P8n-SB P8n-NX NX-P11 P11-P11b P11b-P9 P11b-EK P9-ED2 ED2-P4 P5-ED1 YT-P12 P3b-XW'.split(' ');
+const OUT_EDGES='G1-P1 P1-P2 P2-EA EA-EA2 P2-P3 P3-P3b P3b-P4 P4-P5 P5-G2 P2-P6 P6-HA HA-W1 W1-EH3 EH3-P12 P12-BH BH-P7 P7-TEN TEN-P9 P9-EC EC-P13 P13-P14 P14-G2 P6-VB VB-P7 P7-P8 P8-P8n P8n-SB P8n-NX NX-P11 P11-P11b P11b-P9 P11b-EK P9-ED2 ED2-P4 P5-ED1 ED1-P14 YT-P12 P3b-XW'.split(' ');
 const PLACES=[
   ['G1','Cổng 1','đường Võ Văn Ngân','cong 1 vo van ngan'],
   ['G2','Cổng 2','đường Chương Dương','cong 2 chuong duong'],
@@ -220,18 +231,19 @@ places.forEach(p=>byId[p.id]=p);
 
 const corrByWing={}; // `${b}|${f}|${wi}` → [corridor nodes]
 BUILDINGS.forEach(b=>{
-  b.wingGeo=b.wings.map(r=>{
+  b.wingGeo=b.wings.map(r=>{ const o=r[4]||{};
     const a=M(r[0],r[1]), c=M(r[2],r[3]);
     const X0=a.x,Z0=a.z,X1=c.x,Z1=c.z, alongX=(X1-X0)>=(Z1-Z0);
     const len=alongX?X1-X0:Z1-Z0, dep=alongX?Z1-Z0:X1-X0;
     const n=Math.max(2,Math.round(len/8.5)), cell=len/n, cw=Math.min(2.6,dep*0.28);
     const mid=alongX?(Z0+Z1)/2:(X0+X1)/2, st=alongX?X0:Z0;
     const P=(u,v)=>alongX?{x:st+u,z:mid+v}:{x:mid+v,z:st+u};
-    return {X0,Z0,X1,Z1,alongX,len,dep,n,cell,cw,P};
+    return {X0,Z0,X1,Z1,alongX,len,dep,n,cell,cw,P,minF:o.minF||1,maxF:o.maxF||99,stairsAt:o.stairsAt||'start',shape:o.shape};
   });
-  for(let f=1;f<=b.floors;f++){
+  b.levels.forEach(f=>{
     let k=0;
     b.wingGeo.forEach((w,wi)=>{
+      if(f<w.minF||f>w.maxF) return;
       const key=`${b.id}|${f}|${wi}`, list=corrByWing[key]=[];
       const cn=(suffix,u)=>{ const p=w.P(u,0); const nd=node(`${b.id}${f}w${wi}_${suffix}`,p.x,p.z,f,'corr',{b:b.id}); list.push(nd); return nd; };
       cn('s',0.6);
@@ -248,13 +260,13 @@ BUILDINGS.forEach(b=>{
           else if(s===1&&i===w.n-1){kind='stairs';sid='TB2';name='Thang bộ 2';}
           else if(s===1&&i===0){kind='wc';sid='WC';name='Nhà vệ sinh';}
           else if(b.elevator&&s===-1&&i===Math.floor(w.n/2)){kind='elevator';sid='TM';name='Thang máy';}
-        } else if(s===-1&&i===0){kind='stairs';sid='TB'+(wi+2);name='Thang bộ '+(wi+2);}
+        } else if(s===-1&&i===(w.stairsAt==='end'?w.n-1:0)){kind='stairs';sid='TB'+(wi+2);name='Thang bộ '+(wi+2);}
         const u0=i*w.cell, u1=(i+1)*w.cell, v0=s<0?-w.dep/2:w.cw/2, v1=s<0?-w.cw/2:w.dep/2;
         const A=w.P(u0+0.25,v0+(s<0?0.25:0)), B=w.P(u1-0.25,v1-(s>0?0.25:0));
         const rect={x0:Math.min(A.x,B.x),x1:Math.max(A.x,B.x),z0:Math.min(A.z,B.z),z1:Math.max(A.z,B.z)};
         const c=w.P((u0+u1)/2,(v0+v1)/2), door=w.P((u0+u1)/2,s*w.cw/2);
         let id,code=null;
-        if(kind==='room'){ k++; code=b.fmt(f,k); id=code; name=NAMES[code]||defaultName(b.id); }
+        if(kind==='room'){ k++; code=b.fmt(f,k); id=code; name=NAMES[code]||defaultName(b.id,f); }
         else id=`${b.id}${f}-${sid}`;
         const u={id,code,name,kind,b:b.id,f,wing:wi,rect,c,door,vkey:sid&&kind!=='wc'?`${b.id}-${sid}`:null};
         units.push(u); byId[id]=u;
@@ -267,16 +279,16 @@ BUILDINGS.forEach(b=>{
     });
     // nối các cánh nhà với nhau trên cùng tầng
     for(let wi=1;wi<b.wingGeo.length;wi++){
-      let best=null;
-      for(let wj=0;wj<wi;wj++) corrByWing[`${b.id}|${f}|${wi}`].forEach(p=>corrByWing[`${b.id}|${f}|${wj}`].forEach(q=>{ const d=D2(p,q); if(!best||d<best.d) best={p,q,d}; }));
-      edge(best.p.id,best.q.id,best.d,best.d,'walk');
+      let best=null; const mine=corrByWing[`${b.id}|${f}|${wi}`]; if(!mine) continue;
+      for(let wj=0;wj<wi;wj++) mine.forEach(p=>(corrByWing[`${b.id}|${f}|${wj}`]||[]).forEach(q=>{ const d=D2(p,q); if(!best||d<best.d) best={p,q,d}; }));
+      if(best) edge(best.p.id,best.q.id,best.d,best.d,'walk');
     }
-  }
-  // cầu thang, thang máy nối các tầng
-  for(let f=1;f<b.floors;f++) units.filter(u=>u.b===b.id&&u.f===f&&u.vkey).forEach(u=>{
-    const up=units.find(v=>v.vkey===u.vkey&&v.f===f+1); if(!up) return;
-    if(u.kind==='stairs') edge(u.id,up.id,16,4,'stairs'); else edge(u.id,up.id,4,4,'elevator');
   });
+  // cầu thang, thang máy nối các tầng liền kề (kể cả tầng hầm)
+  b.levels.slice(0,-1).forEach((f,li)=>{ const nf=b.levels[li+1]; units.filter(u=>u.b===b.id&&u.f===f&&u.vkey).forEach(u=>{
+    const up=units.find(v=>v.vkey===u.vkey&&v.f===nf); if(!up) return;
+    if(u.kind==='stairs') edge(u.id,up.id,16,4,'stairs'); else edge(u.id,up.id,4,4,'elevator');
+  }); });
   // cửa ra vào: nối nút ngoài trời với hành lang tầng 1 gần nhất
   Object.entries(b.doors).forEach(([oid,label])=>{
     let best=null; Object.keys(corrByWing).filter(k=>k.startsWith(b.id+'|1|')).forEach(k=>corrByWing[k].forEach(c=>{ const d=D2(c,nodes[oid]); if(!best||d<best.d) best={c,d}; }));
@@ -304,11 +316,11 @@ function route(from,to,noStairs){
 
 /* ================= 3. HƯỚNG DẪN TỪNG BƯỚC ================= */
 const targetNode=t=>t.kind==='place'?t.node:t.id;
-function tLabel(t){ if(t.kind==='place') return t.name; if(t.kind==='wc') return `Nhà vệ sinh tầng ${t.f} tòa ${t.b}`; return `${t.code} · ${t.name}`; }
+function tLabel(t){ if(t.kind==='place') return t.name; if(t.kind==='wc') return `Nhà vệ sinh ${fl(t.f)} tòa ${t.b}`; return `${t.code} · ${t.name}`; }
 function buildSteps(r,start,dest){
   const P=r.path.map(id=>nodes[id]), E=r.edges, steps=[];
   let walk=0, out=0, stairsF=0, elevF=0, elevRides=0;
-  steps.push({t:'start',html: start.kind==='place' ? `Xuất phát tại <b>${start.name}</b>.` : `Xuất phát tại <b>${tLabel(start)}</b>, tầng ${start.f} tòa ${start.b}.`});
+  steps.push({t:'start',html: start.kind==='place' ? `Xuất phát tại <b>${start.name}</b>.` : `Xuất phát tại <b>${tLabel(start)}</b>, ${fl(start.f)} tòa ${start.b}.`});
   const cat=e=>e.type==='walk'?'in':e.type;
   let i=0;
   while(i<E.length){
@@ -328,10 +340,10 @@ function buildSteps(r,start,dest){
         steps.push({t:'end',html:`Đến nơi: <b>${tLabel(dest)}</b>${side?' ở '+side:''}.`});
       }
     } else if(c==='stairs'||c==='elevator'){
-      const fromF=P[i].level, toF=P[j].level, n=Math.abs(toF-fromF);
+      const fromF=P[i].level, toF=P[j].level, n=levelGap(P[i].b,fromF,toF);
       if(c==='stairs') stairsF+=n; else { elevF+=n; elevRides++; }
       const nm=c==='stairs'?byId[P[i].id].name.toLowerCase():'thang máy';
-      steps.push({t:'vert',html:`Đi ${nm} ${toF>fromF?'lên':'xuống'} <b>tầng ${toF}</b>.`});
+      steps.push({t:'vert',html:`Đi ${nm} ${toF>fromF?'lên':'xuống'} <b>${fl(toF)}</b>.`});
     } else if(c==='door'){
       walk+=d;
     } else if(c==='out'){
@@ -362,8 +374,8 @@ const targets=[...places, ...units.filter(u=>u.kind==='room'||u.kind==='wc')];
   const g0=document.createElement('optgroup'); g0.label='Cổng và địa điểm ngoài trời';
   places.forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=p.name+(p.sub?' ('+p.sub+')':''); g0.appendChild(o); });
   fromSel.appendChild(g0);
-  BUILDINGS.forEach(b=>{ for(let f=1;f<=b.floors;f++){
-    const g=document.createElement('optgroup'); g.label=`${b.name} · tầng ${f}`;
+  BUILDINGS.forEach(b=>{ for(const f of b.levels){
+    const g=document.createElement('optgroup'); g.label=`${b.name} · ${fl(f)}`;
     units.filter(u=>u.b===b.id&&u.f===f&&u.kind==='room').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=tLabel(u); g.appendChild(o); });
     fromSel.appendChild(g);
   }});
@@ -374,11 +386,11 @@ function showResults(){
   const t=norm(q.value);
   if(!t){ results.hidden=true; return; }
   const scored=targets.map(u=>{
-    const code=norm(u.code||''), hay=norm([u.code,u.name,u.sub,u.tags,u.b?'toa'+u.b:'',u.f?'tang'+u.f:''].join(' '));
+    const code=norm(u.code||''), hay=norm([u.code,u.name,u.sub,u.tags,u.b?'toa'+u.b:'',u.f?fl(u.f):''].join(' '));
     const sc = code===t?0 : code.startsWith(t)?1 : hay.includes(t)?2 : 9; return {u,sc};
   }).filter(x=>x.sc<9).sort((a,b)=>a.sc-b.sc);
   hits=scored.slice(0,10).map(x=>x.u); hitIdx=0;
-  results.innerHTML = hits.length ? hits.map((u,k)=>`<button type="button" data-id="${u.id}" class="${k===0?'on':''}"><span class="code">${u.kind==='place'?'NGOÀI TRỜI':u.kind==='wc'?'WC':u.code}</span><span>${u.kind==='wc'?'Nhà vệ sinh':u.name}</span><small>${u.kind==='place'?(u.sub||''):`Tòa ${u.b} · tầng ${u.f}`}</small></button>`).join('')
+  results.innerHTML = hits.length ? hits.map((u,k)=>`<button type="button" data-id="${u.id}" class="${k===0?'on':''}"><span class="code">${u.kind==='place'?'NGOÀI TRỜI':u.kind==='wc'?'WC':u.code}</span><span>${u.kind==='wc'?'Nhà vệ sinh':u.name}</span><small>${u.kind==='place'?(u.sub||''):`Tòa ${u.b} · ${fl(u.f)}`}</small></button>`).join('')
     : `<p class="note" style="padding:10px 12px">Không tìm thấy nơi nào khớp với “${q.value.replace(/</g,'&lt;')}”. Thử mã phòng như A205, D04-10 hoặc tên như “y tế”.</p>`;
   results.hidden=false;
 }
@@ -408,7 +420,7 @@ function renderBars(){
   floorBar.hidden=!state.focus; floorBar.innerHTML='';
   if(state.focus){
     const s=document.createElement('span'); s.className='lbl'; s.textContent='Tầng'; floorBar.appendChild(s);
-    [['Tất cả',0],...Array.from({length:BLD[state.focus].floors},(_,i)=>[String(i+1),i+1])].forEach(([t,v])=>{
+    [['Tất cả',0],...BLD[state.focus].levels.map(f=>[f<0?'Hầm':String(f),f])].forEach(([t,v])=>{
       const btn=document.createElement('button'); btn.type='button'; btn.textContent=t; const on=state.floor===v;
       btn.className=on?'on':''; btn.setAttribute('aria-pressed',on);
       btn.addEventListener('click',()=>{ state.floor=v; applyFocus(); renderBars(); refreshLabels(); }); floorBar.appendChild(btn);
@@ -426,7 +438,7 @@ readHash();
 window.addEventListener('hashchange',()=>{ readHash(); update(true); });
 
 function fmtTime(s){ return s<60?'dưới 1 phút':'khoảng '+Math.round(s/60)+' phút'; }
-function where(t){ return t.kind==='place'?'Ngoài trời':`Tòa ${t.b} · T${t.f}`; }
+function where(t){ return t.kind==='place'?'Ngoài trời':`Tòa ${t.b} · ${flShort(t.f)}`; }
 function renderPanel(info){
   const S=$('#summary'), a=byId[state.from], b=byId[state.to];
   if(!a||!b){
@@ -439,7 +451,7 @@ function renderPanel(info){
     return;
   }
   if(state.from===state.to){ S.innerHTML='<p class="note">Bạn đang ở đúng nơi cần đến.</p>'; return; }
-  if(!info){ S.innerHTML=`<p class="note">Không có lối đi phù hợp${state.noStairs?' cho xe lăn: trong dữ liệu mẫu, tòa '+b.b+' không có thang máy lên tầng '+b.f+'. Ở bản thật cần ghi rõ phòng nào tiếp cận được bằng xe lăn.':'.'}</p>`; return; }
+  if(!info){ S.innerHTML=`<p class="note">Không có lối đi phù hợp${state.noStairs?' cho xe lăn: trong dữ liệu mẫu, tòa '+b.b+' không có thang máy lên '+fl(b.f)+'. Ở bản thật cần ghi rõ phòng nào tiếp cận được bằng xe lăn.':'.'}</p>`; return; }
   const chips=[`<span class="chip">${where(a)} → ${where(b)}</span>`];
   if(info.out>1) chips.push(`<span class="chip o">Ngoài trời ${Math.round(info.out)} m</span>`);
   if(info.stairsF) chips.push(`<span class="chip v">Thang bộ ${info.stairsF} tầng</span>`);
@@ -470,9 +482,9 @@ controls.enableDamping=true; controls.maxPolarAngle=Math.PI*0.47; controls.minDi
 scene.add(new THREE.HemisphereLight(0xffffff,0x667766,0.95));
 const sun=new THREE.DirectionalLight(0xffffff,0.5); sun.position.set(80,200,120); scene.add(sun);
 const tok=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
-const elev=(level,h)=>level===0?(h||0):(level-1)*FH+(h||0);
+const elev=(level,h)=>(level===0?0:(level>0?level-1:level)*FH)+(h||0);
 
-let landmarks=[], routeUse=null;
+let landmarks=[], routeUse=null, groundMesh=null;
 let world=null, bldGroups={}, pickables=[], labelGroup=null, staticLabels=[], routeGroup=null, mover=null, routePts=[], routeDists=[], routeLen=0;
 
 function makeLabel(text,sub,o){
@@ -515,7 +527,7 @@ function buildWorld(){
   const border=[[420,362],[890,362],[940,545],[1105,545],[1198,790],[1102,985],[735,930],[522,1078],[390,1022],[225,962],[225,795],[292,765],[292,595],[410,470]];
   const shape=new THREE.Shape(border.map(([px,py])=>{ const m=M(px,py); return new THREE.Vector2(m.x,-m.z); }));
   const ground=new THREE.Mesh(new THREE.ShapeGeometry(shape),new THREE.MeshStandardMaterial({color:tok('--campus')}));
-  ground.rotation.x=-Math.PI/2; ground.position.y=-0.05; world.add(ground);
+  ground.material.transparent=true; ground.rotation.x=-Math.PI/2; ground.position.y=-0.05; world.add(ground); groundMesh=ground;
   // đường bên ngoài
   const roadC=tok('--road');
   world.add(strip(M(80,985),M(470,1115),9,-0.04,roadC));
@@ -544,10 +556,17 @@ function buildWorld(){
   const cRoom=new THREE.Color(tok('--room')), cEdge=new THREE.Color(tok('--room-edge')), cVert=new THREE.Color(tok('--vert'));
   BUILDINGS.forEach(b=>{
     const bg=new THREE.Group(); bg.userData.b=b.id; world.add(bg); bldGroups[b.id]={group:bg,floors:{}};
-    for(let f=1;f<=b.floors;f++){
+    for(const f of b.levels){
       const g=new THREE.Group(); bg.add(g); bldGroups[b.id].floors[f]=g; const y=elev(f);
       b.wingGeo.forEach(w=>{
-        const slab=flat(w.X0,w.Z0,w.X1,w.Z1,y-0.15,tok('--slab'),0.3); slab.material.transparent=true; slab.userData.bld=b.id; g.add(slab); pickables.push(slab);
+        if(f<w.minF||f>w.maxF) return;
+        let slab;
+        if(w.shape==='podium'){ // sàn khối đế theo mặt cong
+          const sh=new THREE.Shape(PODIUM.map(([px,py])=>{ const m=M(px,py); return new THREE.Vector2(m.x,-m.z); }));
+          const geo=new THREE.ExtrudeGeometry(sh,{depth:0.3,bevelEnabled:false}); geo.rotateX(-Math.PI/2);
+          slab=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:tok('--slab')})); slab.position.y=y-0.3;
+        } else slab=flat(w.X0,w.Z0,w.X1,w.Z1,y-0.15,tok('--slab'),0.3);
+        slab.material.transparent=true; slab.userData.bld=b.id; g.add(slab); pickables.push(slab);
         const cA=w.P(0,-w.cw/2), cB=w.P(w.len,w.cw/2);
         g.add(flat(cA.x,cA.z,cB.x,cB.z,y+0.05,tok('--corr'),0.06));
       });
@@ -560,7 +579,7 @@ function buildWorld(){
         ed.position.copy(m.position); g.add(ed);
       });
     }
-    const c=b.wingGeo[0], bl=makeLabel(b.id,`${b.floors} tầng`,{fs:26,px:30,bg:'--sign',fg:'--sign-ink',stroke:'--sign'});
+    const c=b.wingGeo[0], bl=makeLabel(b.id,b.basement?`${b.floors} tầng + hầm`:`${b.floors} tầng`,{fs:26,px:30,bg:'--sign',fg:'--sign-ink',stroke:'--sign'});
     bl.position.set((c.X0+c.X1)/2,elev(b.floors)+6,(c.Z0+c.Z1)/2); bl.userData.bldLabel=b.id; bg.add(bl); staticLabels.push(bl);
   });
   labelGroup=new THREE.Group(); world.add(labelGroup);
@@ -584,7 +603,7 @@ function applyFocus(){
   const onRoute = !state.focus && routeUse;
   BUILDINGS.forEach(b=>{
     const inRoute = onRoute && routeUse.blds.has(b.id);
-    for(let f=1;f<=b.floors;f++){
+    for(const f of b.levels){
       const g=bldGroups[b.id].floors[f];
       let k=1;
       if(state.focus) k = b.id!==state.focus ? 0.2 : 1;
@@ -596,6 +615,9 @@ function applyFocus(){
       o.visible=!(state.focus===b.id&&state.floor);
       o.material.opacity = (state.focus ? b.id===state.focus : (!onRoute||inRoute)) ? 1 : 0.35; });
   });
+  // mặt đất trong suốt bớt khi cần nhìn tầng hầm
+  const seeBasement = (state.focus&&BLD[state.focus].basement) || (onRoute&&[...routeUse.floors].some(k=>k.endsWith('|-1')));
+  if(groundMesh){ groundMesh.material.opacity=seeBasement?0.35:1; groundMesh.material.depthWrite=!seeBasement; }
   landmarks.forEach(m=>{ const k=onRoute?0.22:1; m.material.opacity=m.userData.op*k; m.material.depthWrite=k>=1; });
 }
 
@@ -636,7 +658,7 @@ function flyTo(target,size){
   tween={t0:performance.now(),dur:750,fromT:controls.target.clone(),toT:target,fromP:camera.position.clone(),toP:pos};
 }
 function frameBox(pts){ const bx=new THREE.Box3().setFromPoints(pts); const c=bx.getCenter(new THREE.Vector3()), s=bx.getSize(new THREE.Vector3()); flyTo(c,Math.max(s.x,s.z,s.y*2,30)); }
-function frameBuilding(id){ const pts=[]; BLD[id].wingGeo.forEach(w=>{ pts.push(new THREE.Vector3(w.X0,0,w.Z0),new THREE.Vector3(w.X1,elev(BLD[id].floors),w.Z1)); }); frameBox(pts); }
+function frameBuilding(id){ const pts=[]; BLD[id].wingGeo.forEach(w=>{ pts.push(new THREE.Vector3(w.X0,elev(BLD[id].levels[0]),w.Z0),new THREE.Vector3(w.X1,elev(BLD[id].floors),w.Z1)); }); frameBox(pts); }
 function frameRouteOrCampus(){ if(routePts.length>1) frameBox(routePts); else flyTo(new THREE.Vector3(0,0,-5),300); }
 
 /* ---- chạm để chọn ---- */
