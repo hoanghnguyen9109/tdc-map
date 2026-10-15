@@ -64,13 +64,16 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-display);font-siz
 .examples button{font:inherit;font-size:12.5px;font-weight:500;color:var(--sign);background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:4px 11px;cursor:pointer}
 .examples button:hover{border-color:var(--sign)}
 .body{padding:16px 18px;display:flex;flex-direction:column;gap:14px;overflow:auto;min-height:0}
-label.f{display:flex;flex-direction:column;gap:6px;font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+label.f,.fromfield{display:flex;flex-direction:column;gap:6px;font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 select,input[type=text]{font:inherit;font-size:15px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
 select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--route);outline-offset:2px}
 .searchwrap{position:relative}
 .results{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--panel);border:1px solid var(--line);border-radius:8px;z-index:5;max-height:300px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.14)}
 .results button{display:flex;gap:10px;width:100%;text-align:left;background:none;border:0;padding:9px 12px;font:inherit;color:var(--ink);cursor:pointer;align-items:baseline}
 .results button:hover,.results button.on{background:var(--soft)}
+.results .grp{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 12px 4px;position:sticky;top:0;background:var(--panel)}
+.results .tag{font-family:var(--f-mono);font-weight:700;font-size:11px;color:var(--sign);background:var(--soft);border-radius:5px;padding:2px 6px;white-space:nowrap;flex:none}
+.results .tag.gps{color:var(--panel);background:var(--me)}
 .code{font-family:var(--f-mono);font-weight:700;font-size:12.5px;color:var(--sign);white-space:nowrap}
 .results small{color:var(--muted);margin-left:auto;white-space:nowrap}
 .codehelp{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:-6px}
@@ -249,7 +252,7 @@ ol.steps li:not(:last-child)::after{left:18px}
   .dock{position:static;padding:0;display:block}
   .head,.body>.note,.summary>.big,.summary>.go{display:none}
   /* thẻ tìm kiếm */
-  .mtop{display:flex;flex-direction:column;gap:8px;position:absolute;z-index:6;top:calc(env(safe-area-inset-top,0px) + 10px);left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));pointer-events:none}
+  .mtop{display:flex;flex-direction:column;gap:8px;position:absolute;z-index:8;top:calc(env(safe-area-inset-top,0px) + 10px);left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));pointer-events:none}
   .mtop>*{pointer-events:auto}
   .mt-card{background:var(--panel);border-radius:26px;box-shadow:0 2px 6px rgba(0,0,0,.12),0 6px 18px rgba(0,0,0,.10);display:flex;flex-direction:column}
   .mt-row{display:flex;align-items:center;gap:8px;padding:5px 6px 5px 10px;min-height:52px}
@@ -260,7 +263,9 @@ ol.steps li:not(:last-child)::after{left:18px}
   .mt-logo{flex:none;font-family:var(--f-mono);font-weight:700;font-size:11px;letter-spacing:.05em;color:var(--sign);border:2px solid var(--sign);border-radius:6px;padding:3px 5px;line-height:1}
   .mt-dot{flex:none;width:30px;display:grid;place-items:center}
   .mt-dot i{width:12px;height:12px;border-radius:50%;border:3px solid var(--me);background:var(--panel)}
-  .mt-row .searchwrap,.mt-row label.f{flex:1;min-width:0}
+  .mt-row .searchwrap,.mt-row label.f,.mt-row .fromfield{flex:1;min-width:0}
+  .mt-row .fromfield{font-size:0;gap:0} .mt-row .fromfield>label{display:none}
+  .mt-row .fromwrap .results{font-size:14px;right:-6px}
   .mt-row label.f{font-size:0;gap:0}
   .mt-row input[type=text],.mt-row select{border:0;background:none;padding:8px 4px;font-size:16px;border-radius:8px}
   .mt-row .results{left:-40px;right:-50px;top:calc(100% + 10px);border-radius:14px;max-height:52vh}
@@ -337,9 +342,13 @@ ol.steps li:not(:last-child)::after{left:18px}
     </div>
     <div class="body">
       <div class="suggest" id="geoSuggest" hidden aria-live="polite"></div>
-      <label class="f" for="from">Tôi đang ở
-        <select id="from"></select>
-      </label>
+      <div class="f fromfield" id="fromField"><label for="fromQ">Tôi đang ở</label>
+        <div class="searchwrap fromwrap">
+          <input id="fromQ" type="text" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="fromRes" placeholder="Chọn hoặc gõ: cổng 1, nhà xe, A205…">
+          <div class="results" id="fromRes" role="listbox" hidden></div>
+        </div>
+        <select id="from" hidden aria-hidden="true" tabindex="-1"></select>
+      </div>
       <p class="note" style="margin-top:-6px">Bật định vị bằng nút <b>◎</b> trên bản đồ để chọn “Vị trí hiện tại”, hoặc quét mã QR dán tại cổng, chân cầu thang, cửa phòng.</p>
 
       <div class="searchwrap">
@@ -379,7 +388,7 @@ ol.steps li:not(:last-child)::after{left:18px}
       <div class="seg" id="floorBar" role="group" aria-label="Chọn tầng" hidden></div>
     </div>
     <div class="geoctl">
-      <button type="button" class="fab" id="padBtn" aria-label="Điều khiển góc nhìn" aria-expanded="false" title="Điều khiển góc nhìn"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 6.5l2 3h-4zM12 17.5l2-3h-4zM6.5 12l3-2v4zM17.5 12l-3-2v4z" fill="currentColor"/></svg></button>
+      <button type="button" class="fab" id="padBtn" aria-label="Điều khiển góc nhìn" aria-expanded="false" title="Điều khiển góc nhìn"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>
       <button type="button" class="locbtn" id="locBtn" aria-expanded="false" aria-controls="geoPanel" aria-label="Vị trí của tôi" title="Vị trí của tôi">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
       </button>
@@ -831,7 +840,50 @@ q.addEventListener('keydown',e=>{
   if(e.key==='Escape') results.hidden=true;
 });
 results.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) pickDest(b.dataset.id); });
-document.addEventListener('click',e=>{ if(!e.target.closest('.searchwrap')) results.hidden=true; });
+document.addEventListener('click',e=>{ if(!e.target.closest('.searchwrap')||e.target.closest('.fromwrap')) results.hidden=true; });
+/* Ô "Tôi đang ở": vừa gõ vừa chọn. Khi chạm vào sẽ hiện gợi ý, ưu tiên địa điểm chung (vị trí hiện tại, cổng, nhà xe…),
+   gõ chữ để lọc theo tên địa điểm, cửa tòa nhà hoặc mã phòng. Ô chọn ẩn #from vẫn giữ giá trị cho phần còn lại của ứng dụng. */
+const fromQ=$('#fromQ'), fromRes=$('#fromRes');
+const fromLabel=id=>{ const u=byId[id]; if(!u) return ''; return id==='me'?'Vị trí hiện tại':u.kind==='place'?u.name:tLabel(u); };
+const FROM_ROOMS=units.filter(u=>u.kind==='room');
+let fHits=[], fIdx=0;
+function fromItem(u){
+  const tag=u.id==='me'?'<span class="tag gps">GPS</span>':(u.kind==='place'&&u.door)?'<span class="tag">CỬA</span>':u.kind==='place'?'<span class="tag">NGOÀI TRỜI</span>':`<span class="tag">${u.code}</span>`;
+  const sub=u.id==='me'?(($('#optMe')||{}).textContent||'').replace(/^Vị trí hiện tại\s*/,'').replace(/[()]/g,''):u.kind==='place'?(u.sub||''):`Tòa ${u.b} · ${fl(u.f)}`;
+  return `<button type="button" role="option" data-id="${u.id}">${tag}<span>${u.id==='me'?'Vị trí hiện tại':u.name}</span><small>${sub}</small></button>`;
+}
+function showFrom(){
+  const raw=fromQ.value, t=norm(raw===fromLabel(state.from)?'':raw);
+  let html='';
+  if(!t){                                                   // chưa gõ gì: gợi ý chung trước, rồi cửa ra vào các tòa
+    fHits=[byId.me,...places,...DOOR_PLACES];
+    html='<div class="grp">Gợi ý</div>'+[byId.me,...places].map(fromItem).join('')+'<div class="grp">Cửa ra vào các tòa</div>'+DOOR_PLACES.map(fromItem).join('')
+      +'<p class="note" style="padding:8px 12px">Hoặc gõ mã phòng, ví dụ A205, D04-10.</p>';
+  } else {
+    const pool=[[byId.me,0],...places.map(u=>[u,0]),...DOOR_PLACES.map(u=>[u,1]),...FROM_ROOMS.map(u=>[u,2])];
+    const sc=pool.map(([u,rank])=>{
+      const code=norm(u.code||''), hay=norm(u.id==='me'?'vi tri hien tai cua toi gps dinh vi o day':[u.code,u.name,u.sub,u.tags,u.b?'toa'+u.b:'',u.f?fl(u.f):''].join(' '));
+      const s=code&&code===t?0:code&&code.startsWith(t)?1:norm(u.name).startsWith(t)?2:hay.includes(t)?3:9; return {u,s,rank}; })
+      .filter(x=>x.s<9).sort((a,b)=>a.s-b.s||a.rank-b.rank);
+    fHits=sc.slice(0,14).map(x=>x.u);
+    html=fHits.length?fHits.map(fromItem).join(''):`<p class="note" style="padding:10px 12px">Không tìm thấy “${raw.replace(/</g,'&lt;')}”. Thử “cổng”, “nhà xe”, hoặc mã phòng như A205.</p>`;
+  }
+  fIdx=-1; fromRes.innerHTML=html; fromRes.hidden=false; fromQ.setAttribute('aria-expanded','true');
+}
+function hideFrom(){ fromRes.hidden=true; fromQ.setAttribute('aria-expanded','false'); }
+function pickFrom(id){ hideFrom(); fromSel.value=id; fromSel.dispatchEvent(new Event('change')); fromQ.value=fromLabel(id); fromQ.blur(); }
+fromQ.addEventListener('focus',()=>{ fromQ.select(); showFrom(); });
+fromQ.addEventListener('input',showFrom);
+fromQ.addEventListener('keydown',e=>{
+  const btns=[...fromRes.querySelectorAll('button')];
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); if(fromRes.hidden) showFrom(); if(!btns.length) return;
+    fIdx=(fIdx+(e.key==='ArrowDown'?1:-1)+btns.length)%btns.length; btns.forEach((b,k)=>b.classList.toggle('on',k===fIdx)); btns[fIdx].scrollIntoView({block:'nearest'}); }
+  if(e.key==='Enter'){ e.preventDefault(); const b=btns[Math.max(0,fIdx)]; if(b) pickFrom(b.dataset.id); }
+  if(e.key==='Escape'){ hideFrom(); fromQ.value=fromLabel(state.from); fromQ.blur(); }
+});
+fromRes.addEventListener('pointerdown',e=>e.preventDefault());       // giữ ô nhập không bị mất focus trước khi chọn
+fromRes.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) pickFrom(b.dataset.id); });
+fromQ.addEventListener('blur',()=>setTimeout(()=>{ if(document.activeElement!==fromQ){ hideFrom(); fromQ.value=fromLabel(state.from); } },150));
 fromSel.addEventListener('change',()=>{ state.from=fromSel.value||null;
   if(state.from==='me'&&!(geo.fix&&!geo.fix.level)){ openGeoPanel(); if(!geo.src) startGps(); }
   update(true); });
@@ -1592,6 +1644,7 @@ renderer.domElement.addEventListener('pointerup',e=>{
 
 function update(reframe,keepNav){
   fromSel.value=state.from||'';
+  if(document.activeElement!==fromQ) fromQ.value=fromLabel(state.from);
   const a=byId[state.from], d=byId[state.to];
   const meOk=state.from!=='me'||placeMeNode();
   const r=(!a||!d||!meOk||state.from===state.to)?null:route(targetNode(a),targetNode(d),state.noStairs);
@@ -2107,12 +2160,12 @@ function toast(msg,actLabel,act){
 const MQ=window.matchMedia('(max-width:760px)');
 const panel=$('#panel'), mTop=$('#mTop');
 const sheet={state:'peek',vis:0};
-const MOVES=[ [$('.searchwrap'),'#mtTo','#mReset'], [$('label[for=from]'),'#mtFrom',null], [$('#geoSuggest'),'#peek',null], [$('.mapwrap .bar'),'#mTop',null] ]
+const MOVES=[ [$('#q').closest('.searchwrap'),'#mtTo','#mReset'], [$('#fromField'),'#mtFrom',null], [$('#geoSuggest'),'#peek',null], [$('.mapwrap .bar'),'#mTop',null] ]
   .map(([el,to,before])=>({el,to,before,home:el.parentNode,next:el.nextSibling}));
 function placeForViewport(){
   const m=MQ.matches;
   MOVES.forEach(o=>{ if(m){ const t=$(o.to), b=o.before?$(o.before):null; b?t.insertBefore(o.el,b):t.appendChild(o.el); } else o.home.insertBefore(o.el,o.next); });
-  if(m){ $('#q').placeholder='Tìm phòng: A205, D04-10…'; } else $('#q').placeholder='Mã phòng như A205, D04-10, hoặc tên: y tế, nhà xe';
+  if(m){ $('#q').placeholder='Tìm phòng: A205, D04-10…'; $('#fromQ').placeholder='Bạn đang ở đâu? cổng, nhà xe, A205…'; } else { $('#q').placeholder='Mã phòng như A205, D04-10, hoặc tên: y tế, nhà xe'; $('#fromQ').placeholder='Chọn hoặc gõ: cổng 1, nhà xe, A205…'; }
   if(!m){ panel.style.transform=''; document.documentElement.classList.remove('sheet-full'); ['legend','pad'].forEach(c=>$('.dock>.'+c).classList.remove('show')); }
   renderPeek(); requestAnimationFrame(()=>{ resize(); setSheet(sheet.state,false); });
 }
