@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -238,6 +238,10 @@ ol.steps li:not(:last-child)::after{left:18px}
   /* Bản đồ phủ kín màn hình. Phía trên: thẻ tìm kiếm và hàng chip tòa nhà. Bên phải: nút tròn nổi.
      Phía dưới: ngăn kéo vuốt lên (nhìn lướt / nửa màn hình / toàn màn hình). */
   html,body{height:100%;overflow:hidden}
+  /* iOS tự phóng to trang khi chạm vào ô nhập chữ nhỏ hơn 16px rồi giữ nguyên mức phóng, làm mép phải giao diện bị che:
+     để ô nhập 16px và chặn thao tác chụm phóng to cả trang (bản đồ 3D vẫn chụm để thu phóng như thường) */
+  input,select,textarea{font-size:16px!important}
+  html,body{touch-action:pan-x pan-y}
   body{padding:0}
   .app{display:block;height:100%}
   .mapcol{position:fixed;inset:0;z-index:0}
@@ -1268,9 +1272,8 @@ function buildWalkway(){
   }
   const on=(a,b,x)=>{ const t=(x-a.x)/(b.x-a.x); return {x, z:a.z+(b.z-a.z)*t}; };
   const EB=nodes.EB, P7=nodes.P7, TE=nodes.TEN, P9=nodes.P9;
-  const ZW=-0.1;                                              // đầu Tây sát khu B, đầu Đông sát tòa C; chừa khoảng trống cho đường chính
-  run({x:-51,z:ZW},{x:-15.5,z:ZW});
-  run({x:-7,z:ZW},{x:48.4,z:ZW});
+  const ZW=-0.1;                                              // chạy liền một mạch từ đầu khu B tới sát tòa C (kể cả đoạn qua đường chính)
+  run({x:-51,z:ZW},{x:48.4,z:ZW});
   // chòi nghỉ khung gỗ vàng ở cuối hành lang
   const cx=50.9, cz=ZW;
   const kg=new THREE.Group(); kg.position.set(cx,0,cz); grp.add(kg);
@@ -2109,7 +2112,7 @@ const MOVES=[ [$('.searchwrap'),'#mtTo','#mReset'], [$('label[for=from]'),'#mtFr
 function placeForViewport(){
   const m=MQ.matches;
   MOVES.forEach(o=>{ if(m){ const t=$(o.to), b=o.before?$(o.before):null; b?t.insertBefore(o.el,b):t.appendChild(o.el); } else o.home.insertBefore(o.el,o.next); });
-  if(m){ $('#q').placeholder='Tìm phòng, ví dụ A205, D04-10'; } else $('#q').placeholder='Mã phòng như A205, D04-10, hoặc tên: y tế, nhà xe';
+  if(m){ $('#q').placeholder='Tìm phòng: A205, D04-10…'; } else $('#q').placeholder='Mã phòng như A205, D04-10, hoặc tên: y tế, nhà xe';
   if(!m){ panel.style.transform=''; document.documentElement.classList.remove('sheet-full'); ['legend','pad'].forEach(c=>$('.dock>.'+c).classList.remove('show')); }
   renderPeek(); requestAnimationFrame(()=>{ resize(); setSheet(sheet.state,false); });
 }
