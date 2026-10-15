@@ -1,4 +1,11 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
 <title>TDC Chỉ Đường</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,7 +17,7 @@
   --bg:#EDF1EF; --panel:#FFFFFF; --ink:#15211C; --muted:#5B6A64; --line:#D3DBD7;
   --sign:#0B6B4C; --sign-ink:#FFFFFF; --route:#D6336C; --room:#C6D5CD; --room-edge:#8FA79B;
   --slab:#DDE5E1; --corr:#F7F9F8; --vert:#A3AEBB; --soft:#F3F6F4;
-  --seg-out:#2E9E3E; --seg-in:#E58A1F; --seg-stairs:#8A4FD3; --seg-elev:#2468D8;
+  --seg-out:#2E9E3E; --seg-in:#E58A1F; --seg-stairs:#8A4FD3; --seg-elev:#2468D8; --me:#1A73E8; --me-ink:#FFFFFF;
   --campus:#E6ECE8; --grass:#A9CDA9; --court:#E4C29C; --pave:#FBFCFB; --road:#9AA39F; --landmark:#BFC9C4; --clinic:#D65A4F; --lot:#D7DDDA;
   --f-display:"Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -20,7 +27,7 @@
     --bg:#0D1311; --panel:#141C19; --ink:#E3ECE7; --muted:#92A29B; --line:#25322D;
     --sign:#2FA67A; --sign-ink:#04110C; --route:#F2668F; --room:#2A3B35; --room-edge:#4A6359;
     --slab:#1A2521; --corr:#22302B; --vert:#4B5664; --soft:#101815;
-    --seg-out:#57C26A; --seg-in:#F5A04A; --seg-stairs:#B48CF5; --seg-elev:#66A3F7;
+    --seg-out:#57C26A; --seg-in:#F5A04A; --seg-stairs:#B48CF5; --seg-elev:#66A3F7; --me:#5EA3FF; --me-ink:#06121F;
     --campus:#18221E; --grass:#26412E; --court:#4D3C2B; --pave:#2C3934; --road:#3B4743; --landmark:#34423C; --clinic:#C04F45; --lot:#222C28; color-scheme:dark;
   }
 }
@@ -28,7 +35,7 @@
   --bg:#0D1311; --panel:#141C19; --ink:#E3ECE7; --muted:#92A29B; --line:#25322D;
   --sign:#2FA67A; --sign-ink:#04110C; --route:#F2668F; --room:#2A3B35; --room-edge:#4A6359;
   --slab:#1A2521; --corr:#22302B; --vert:#4B5664; --soft:#101815;
-    --seg-out:#57C26A; --seg-in:#F5A04A; --seg-stairs:#B48CF5; --seg-elev:#66A3F7;
+    --seg-out:#57C26A; --seg-in:#F5A04A; --seg-stairs:#B48CF5; --seg-elev:#66A3F7; --me:#5EA3FF; --me-ink:#06121F;
   --campus:#18221E; --grass:#26412E; --court:#4D3C2B; --pave:#2C3934; --road:#3B4743; --landmark:#34423C; --clinic:#C04F45; --lot:#222C28; color-scheme:dark;
 }
 [hidden]{display:none!important}
@@ -93,6 +100,50 @@ pre{font-family:var(--f-mono);font-size:11.5px;line-height:1.5;background:var(--
 .mapcol{position:relative;display:flex;flex-direction:column;min-height:0;min-width:0}
 .mapwrap{position:relative;flex:1;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--soft);min-height:0;min-width:0}
 /* Màn hình rộng: chú giải, thẻ chỉ đường và bảng điều khiển nổi trên đáy bản đồ */
+/* định vị */
+.geoctl{position:absolute;top:12px;right:12px;z-index:6;display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none;max-width:calc(100% - 24px)}
+.geoctl>*{pointer-events:auto}
+.locbtn{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0;touch-action:manipulation}
+.locbtn:hover{color:var(--ink);border-color:var(--me)}
+.locbtn.on{color:var(--me);border-color:var(--me)}
+.locbtn.busy svg{animation:locspin 1.4s linear infinite}
+.locbtn.err{color:var(--route)}
+@keyframes locspin{to{transform:rotate(360deg)}}
+.geopanel{width:300px;max-width:100%;max-height:min(62vh,520px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.gp-title{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.gp-status{font-size:13px;line-height:1.45;margin:0;padding:8px 10px;border-radius:8px;background:var(--soft);border-left:3px solid var(--line)}
+.gp-status.ok{border-left-color:var(--me)} .gp-status.err{border-left-color:var(--route)}
+.gp-act{font:inherit;font-size:13.5px;font-weight:600;text-align:left;min-height:40px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:10px;touch-action:manipulation}
+.gp-act:hover{border-color:var(--me)}
+.gp-act.primary{background:var(--me);border-color:var(--me);color:var(--me-ink)}
+.gp-act:disabled{opacity:.45;cursor:default}
+.gp-act svg{flex:none}
+.gp-qr{display:flex;gap:6px}
+.gp-qr input{font:inherit;font-size:14px;min-width:0;flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--soft);color:var(--ink)}
+.gp-qr button{font:inherit;font-size:13px;font-weight:600;padding:0 12px;border-radius:8px;border:0;background:var(--sign);color:var(--sign-ink);cursor:pointer}
+.gp-note{font-size:12px;line-height:1.45;color:var(--muted);margin:0}
+.gp-note b{font-family:var(--f-mono);font-size:11.5px;color:var(--ink)}
+.toast{position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:7;max-width:min(440px,calc(100% - 24px));width:max-content;background:var(--ink);color:var(--bg);border-radius:10px;padding:9px 12px;font-size:13.5px;line-height:1.4;display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast button{font:inherit;font-size:13px;font-weight:700;border:0;background:none;color:var(--bg);text-decoration:underline;cursor:pointer;white-space:nowrap;padding:4px 0}
+.scan{position:absolute;inset:0;z-index:8;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.scan video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.scan .frame{position:relative;width:min(60vw,240px);aspect-ratio:1;border:3px solid #fff;border-radius:16px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+.scan button{position:relative;font:inherit;font-weight:700;padding:10px 18px;border-radius:999px;border:0;background:#fff;color:#111;cursor:pointer}
+.mapwrap.pinning canvas{cursor:crosshair}
+.suggest{border:1px solid var(--line);border-left:3px solid var(--me);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--soft)}
+.suggest p{margin:0;font-size:13.5px;line-height:1.45}
+.sg-btns{display:flex;flex-wrap:wrap;gap:6px}
+.sg-btns button{font:inherit;font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.sg-btns .sg-main{background:var(--me);border-color:var(--me);color:var(--me-ink)}
+.sg-btns .sg-x{color:var(--muted)}
+.nc-live{margin:0 0 8px;font-size:12.5px;line-height:1.45;color:var(--muted);display:flex;gap:8px;align-items:flex-start}
+.nc-live::before{content:"";flex:none;width:8px;height:8px;margin-top:5px;border-radius:50%;background:var(--me);box-shadow:0 0 0 3px color-mix(in srgb,var(--me) 25%,transparent)}
+.nc-live.indoor::before{background:var(--seg-in);box-shadow:none}
+.nc-simchip{font:inherit;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--me);color:var(--me);background:none;cursor:pointer;margin-left:6px}
+.nc-idle-btns{display:flex;gap:8px;flex-wrap:wrap}
+#navNext.pulse{animation:nextpulse 1.2s ease-in-out infinite}
+@keyframes nextpulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--sign) 30%,transparent)}}
+@media (prefers-reduced-motion: reduce){ .locbtn.busy svg,#navNext.pulse{animation:none} }
 .dock{position:absolute;left:12px;right:12px;bottom:12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;gap:12px;pointer-events:none}
 .dock>*{pointer-events:auto}
 .dock>.legend{grid-column:1;justify-self:start}
@@ -100,7 +151,7 @@ pre{font-family:var(--f-mono);font-size:11.5px;line-height:1.5;background:var(--
 .dock>.pad{grid-column:3;justify-self:end;width:max-content}
 #map{position:absolute;inset:0}
 #map canvas{display:block;touch-action:none}
-.bar{position:absolute;top:12px;left:12px;right:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;pointer-events:none}
+.bar{position:absolute;top:12px;left:12px;right:66px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;pointer-events:none}
 .seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:4px;pointer-events:auto;max-width:100%}
 .seg button{font:inherit;font-size:13px;font-weight:600;border:0;background:none;color:var(--muted);padding:6px 10px;border-radius:5px;cursor:pointer;min-width:34px}
 .seg button.on{background:var(--sign);color:var(--sign-ink)}
@@ -193,10 +244,11 @@ ol.steps li:not(:last-child)::after{left:18px}
       <button type="button" class="reset" id="reset" title="Xóa lựa chọn và đưa bản đồ về toàn trường">Đặt lại</button>
     </div>
     <div class="body">
+      <div class="suggest" id="geoSuggest" hidden aria-live="polite"></div>
       <label class="f" for="from">Tôi đang ở
         <select id="from"></select>
       </label>
-      <p class="note" style="margin-top:-6px">Ở bản thật, quét mã QR dán tại cổng, sảnh hoặc cửa phòng sẽ tự điền ô này.</p>
+      <p class="note" style="margin-top:-6px">Bật định vị bằng nút <b>◎</b> trên bản đồ để chọn “Vị trí hiện tại”, hoặc quét mã QR dán tại cổng, chân cầu thang, cửa phòng.</p>
 
       <div class="searchwrap">
         <label class="f" for="q">Nơi cần đến
@@ -212,7 +264,7 @@ ol.steps li:not(:last-child)::after{left:18px}
 
       <details>
         <summary>Dữ liệu của nơi đang chọn</summary>
-        <p class="note" style="margin-top:8px">Mỗi phòng là một đa giác có thuộc tính theo kiểu chuẩn IMDF, tọa độ tính bằng mét trong hệ tọa độ chung của khuôn viên. Mô hình 3D, lối đi giữa các tòa và hướng dẫn đều sinh tự động từ dữ liệu này.</p>
+        <p class="note" style="margin-top:8px">Mỗi phòng là một đa giác có thuộc tính theo kiểu chuẩn IMDF, toạ độ kinh độ / vĩ độ WGS84 đã hiệu chỉnh theo 15 điểm mốc GPS của trường. Mô hình 3D, lối đi giữa các tòa và hướng dẫn đều sinh tự động từ dữ liệu này.</p>
         <pre id="geo"></pre>
       </details>
     </div>
@@ -225,6 +277,25 @@ ol.steps li:not(:last-child)::after{left:18px}
       <div class="seg" id="bldBar" role="group" aria-label="Chọn tòa nhà"></div>
       <div class="seg" id="floorBar" role="group" aria-label="Chọn tầng" hidden></div>
     </div>
+    <div class="geoctl">
+      <button type="button" class="locbtn" id="locBtn" aria-expanded="false" aria-controls="geoPanel" aria-label="Vị trí của tôi" title="Vị trí của tôi">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      </button>
+      <div class="geopanel" id="geoPanel" hidden>
+        <span class="gp-title">Vị trí của tôi</span>
+        <p class="gp-status" id="gpStatus">Chưa bật định vị.</p>
+        <button type="button" class="gp-act primary" id="gpGps"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/></svg><span>Bật định vị GPS</span></button>
+        <button type="button" class="gp-act" id="gpCenter" hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></svg><span>Đưa bản đồ về vị trí của tôi</span></button>
+        <button type="button" class="gp-act" id="gpPin"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.7-6-11a6 6 0 0112 0c0 5.3-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></svg><span>Chạm bản đồ để đặt vị trí</span></button>
+        <button type="button" class="gp-act" id="gpSim"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M9 20l2-6 3 3v4M7 12l3-4 4 1 3 3M11 14l-2-3"/></svg><span>Mô phỏng đi theo lộ trình</span></button>
+        <span class="gp-title" style="margin-top:4px">Mã QR tại chỗ</span>
+        <form class="gp-qr" id="gpQr"><input id="gpCode" type="text" autocomplete="off" placeholder="Ví dụ D4-TM, D04-10, G1" aria-label="Mã in dưới mã QR"><button type="submit">Dùng mã</button></form>
+        <button type="button" class="gp-act" id="gpScan"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3M8 12h8"/></svg><span>Quét mã QR bằng camera</span></button>
+        <p class="gp-note">Ngoài trời dùng GPS, sai số thường 3–10 m. Trong nhà GPS không biết bạn ở tầng nào, nên dùng mã QR ở chân cầu thang, cửa thang máy: <b>D4-TM</b> là thang máy tầng 4 tòa D, <b>D4-TB1</b> là thang bộ 1.</p>
+      </div>
+    </div>
+    <div class="toast" id="toast" role="status" hidden><span></span><button type="button" hidden></button></div>
+    <div class="scan" id="scan" hidden><video playsinline muted></video><div class="frame"></div><button type="button">Đóng</button></div>
    </div>
    <div class="dock">
     <div class="legend" aria-label="Chú giải đường đi" data-box="legend" data-name="chú giải">
@@ -240,14 +311,18 @@ ol.steps li:not(:last-child)::after{left:18px}
     <div class="navcard" id="navcard" hidden aria-live="polite" data-box="navcard" data-name="thẻ chỉ đường">
       <div class="nc-idle" id="ncIdle">
         <div class="nc-sum" id="ncSum"></div>
-        <button type="button" class="go" id="navStart"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>Bắt đầu chỉ đường</button>
+        <div class="nc-idle-btns">
+          <button type="button" class="ghostbtn" id="navSim" title="Thử chỉ đường với một người đi bộ giả lập theo lộ trình">Mô phỏng</button>
+          <button type="button" class="go" id="navStart"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>Bắt đầu chỉ đường</button>
+        </div>
       </div>
       <div id="ncRun" hidden>
-        <div class="nc-top"><span class="nc-badge" id="ncBadge">1</span><span class="nc-count" id="ncCount"></span>
+        <div class="nc-top"><span class="nc-badge" id="ncBadge">1</span><span class="nc-count" id="ncCount"></span><button type="button" class="nc-simchip" id="ncSim" hidden title="Dừng mô phỏng">Mô phỏng ×4 · Dừng</button>
           <button type="button" class="mini nc-mini" aria-expanded="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
           <button type="button" class="nc-x" id="navExit" aria-label="Thoát chế độ chỉ đường" title="Thoát (Esc)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
         <p class="nc-text" id="ncText" style="margin:8px 0"></p>
         <div class="nc-prog" style="margin-bottom:8px"><i id="ncProg"></i></div>
+        <p class="nc-live" id="ncLive" hidden></p>
         <div class="nc-btns">
           <button type="button" class="ghostbtn" id="navPrev" title="Mốc trước (P)">Trước</button>
           <button type="button" class="go" id="navNext" title="Mốc tiếp theo (N)">Tiếp</button>
@@ -284,10 +359,73 @@ ol.steps li:not(:last-child)::after{left:18px}
 <script>
 (function(){
 /* ================= 1. DỮ LIỆU KHUÔN VIÊN =================
-   Tọa độ đo trên sơ đồ khuôn viên (đơn vị điểm ảnh), quy đổi 1 điểm ảnh ≈ 0,3 m.
-   Trục x hướng Đông, trục z hướng Nam. */
-const S=0.3, CX=700, CY=740, FH=4.2;
-const M=(px,py)=>({x:(px-CX)*S, z:(py-CY)*S});
+   Bố cục vẽ trên sơ đồ khuôn viên (đơn vị điểm ảnh), sau đó hiệu chỉnh theo toạ độ GPS thật của các điểm mốc.
+   Hệ toạ độ 3D tính bằng mét: trục x gần hướng Đông, trục z gần hướng Nam (xoay theo lưới công trình của trường). */
+const CX=700, CY=740, FH=4.2;
+
+/* ---- hiệu chỉnh theo GPS ---- */
+const GEO0={lat:10.851105074421053, lon:106.75816280674498};          // gốc: Cổng 1
+const RAD=Math.PI/180;
+const MLAT=111132.92-559.82*Math.cos(2*GEO0.lat*RAD)+1.175*Math.cos(4*GEO0.lat*RAD);  // mét / độ vĩ
+const MLON=111412.84*Math.cos(GEO0.lat*RAD)-93.5*Math.cos(3*GEO0.lat*RAD);            // mét / độ kinh
+const enuOf=(lat,lon)=>[(lon-GEO0.lon)*MLON,(lat-GEO0.lat)*MLAT];      // mét về phía Đông, phía Bắc
+// Điểm mốc: [tên, vĩ độ, kinh độ, x, y trên sơ đồ, bù Đông (m), bù Bắc (m)]
+const CTRL=[
+  ['Cổng 1',               10.851105074421053,106.75816280674498, 500,1062],
+  ['Cổng 2',               10.851691091622767,106.75978136334791,1102, 975],
+  // Ảnh vệ tinh chụp xiên nên mái tòa D lệch về Tây Bắc so với chân đế khoảng 9 m: bù về tâm chân đế
+  ['Tòa D',                10.852002665805589,106.75948906347932,1003, 834, 6.9,-5.5],
+  ['Tòa C',                10.852325351402827,106.75958208439567, 990, 719],
+  ['Sân bóng chuyền',      10.851936650548627,106.75840399112226, 555, 815],
+  ['Sân bóng đá mini',     10.853008570873916,106.75823014908264, 540, 475],
+  ['Khu H',                10.851892556886588,106.75793897204825, 447, 815],
+  ['Tòa trái khu A',       10.851530328057937,106.75767168646075, 300, 905],
+  ['Tòa phải khu A',       10.851612452849373,106.75831526237401, 525, 905],
+  ['Giữa 2 bãi cỏ khu A',  10.851405674310525,106.75797032957593, 408, 975],
+  ['Sân tennis',           10.851955082079526,106.75882823024257, 700, 811],
+  ['Xưởng cơ khí',         10.851977136453918,106.75905138631902, 798, 811],
+  ['Ký túc xá',            10.852661871493739,106.75953384056358, 984, 593],
+  ['Trạm Y tế',            10.852184860298104,106.75756264229526, 307, 711],
+  ['Khu B (giáp khu H)',   10.852230663867205,106.757899307711,   440, 705],
+];
+// 1) phép đồng dạng (xoay + tỉ lệ + dời) khớp nhất giữa sơ đồ và GPS, giải bằng số phức
+const SIM=(()=>{ const n=CTRL.length;
+  const Z=CTRL.map(c=>[c[3],-c[4]]), W=CTRL.map(c=>{ const e=enuOf(c[1],c[2]); return [e[0]+(c[5]||0),e[1]+(c[6]||0)]; });
+  let zr=0,zi=0,wr=0,wi=0; Z.forEach(z=>{ zr+=z[0]/n; zi+=z[1]/n; }); W.forEach(w=>{ wr+=w[0]/n; wi+=w[1]/n; });
+  let nr=0,ni=0,den=0;
+  for(let k=0;k<n;k++){ const a=Z[k][0]-zr,b=Z[k][1]-zi,c=W[k][0]-wr,d=W[k][1]-wi; nr+=c*a+d*b; ni+=d*a-c*b; den+=a*a+b*b; }
+  const ar=nr/den, ai=ni/den;
+  return {ar,ai,br:wr-(ar*zr-ai*zi),bi:wi-(ar*zi+ai*zr),s:Math.hypot(ar,ai),W};
+})();
+const S=SIM.s;                                                          // ≈ 0,32 m mỗi điểm ảnh sơ đồ
+function pxFromEnu(e,n){ const dr=e-SIM.br, di=n-SIM.bi, m=SIM.ar*SIM.ar+SIM.ai*SIM.ai;
+  return [(dr*SIM.ar+di*SIM.ai)/m, -(di*SIM.ar-dr*SIM.ai)/m]; }
+function enuFromPx(px,py){ const zi=-py; return [SIM.ar*px-SIM.ai*zi+SIM.br, SIM.ar*zi+SIM.ai*px+SIM.bi]; }
+const worldFromPxLin=(px,py)=>({x:(px-CX)*S, z:(py-CY)*S});
+const worldFromEnu=(e,n)=>{ const p=pxFromEnu(e,n); return worldFromPxLin(p[0],p[1]); };
+const worldFromLatLon=(lat,lon)=>{ const e=enuOf(lat,lon); return worldFromEnu(e[0],e[1]); };
+const latLonFromWorld=(x,z)=>{ const e=enuFromPx(x/S+CX,z/S+CY); return [GEO0.lat+e[1]/MLAT, GEO0.lon+e[0]/MLON]; };
+// 2) nắn phần sai lệch còn lại bằng spline mỏng (thin-plate spline): điểm mốc trên sơ đồ trùng đúng vị trí GPS
+const TPS=(()=>{ const K=100, n=CTRL.length, P=CTRL.map(c=>[c[3]/K,c[4]/K]);
+  const D=CTRL.map((c,k)=>{ const t=pxFromEnu(SIM.W[k][0],SIM.W[k][1]); return [t[0]-c[3],t[1]-c[4]]; });
+  const U=r=>r<1e-9?0:r*r*Math.log(r), dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+  const N=n+3, A=[...Array(N)].map(()=>new Array(N).fill(0));
+  for(let i=0;i<n;i++){ for(let j=0;j<n;j++) A[i][j]=U(dist(P[i],P[j]));
+    A[i][n]=A[n][i]=1; A[i][n+1]=A[n+1][i]=P[i][0]; A[i][n+2]=A[n+2][i]=P[i][1]; }
+  const solve=rhs=>{ const m=A.map((r,i)=>[...r,rhs[i]]);
+    for(let c=0;c<N;c++){ let p=c; for(let r=c+1;r<N;r++) if(Math.abs(m[r][c])>Math.abs(m[p][c])) p=r; [m[c],m[p]]=[m[p],m[c]];
+      for(let r=0;r<N;r++){ if(r===c) continue; const f=m[r][c]/m[c][c]; for(let k=c;k<=N;k++) m[r][k]-=f*m[c][k]; } }
+    return m.map((r,i)=>r[N]/r[i]); };
+  const wx=solve([...D.map(d=>d[0]),0,0,0]), wy=solve([...D.map(d=>d[1]),0,0,0]);
+  return (px,py)=>{ const q=[px/K,py/K]; let dx=wx[n]+wx[n+1]*q[0]+wx[n+2]*q[1], dy=wy[n]+wy[n+1]*q[0]+wy[n+2]*q[1];
+    for(let i=0;i<n;i++){ const u=U(dist(q,P[i])); dx+=wx[i]*u; dy+=wy[i]*u; } return [dx,dy]; };
+})();
+// toạ độ sơ đồ → toạ độ 3D (mét) đã hiệu chỉnh
+const M=(px,py)=>{ const d=TPS(px,py); return worldFromPxLin(px+d[0],py+d[1]); };
+// Tòa D dựng lại theo ảnh vệ tinh (mét): u về phía Đông, v về phía Nam, gốc ở góc Tây Bắc chân đế
+const D_ANCHOR=(()=>{ const c=CTRL.find(c=>c[0]==='Tòa D'), e=enuOf(c[1],c[2]); return worldFromEnu(e[0]+c[5],e[1]+c[6]); })();
+const D_C=[30.9,21.9];                                                  // tâm khung bao chân đế
+const DL=(u,v)=>({x:D_ANCHOR.x+u-D_C[0], z:D_ANCHOR.z+v-D_C[1]});
 const p2=n=>String(n).padStart(2,'0');
 
 const BUILDINGS=[
@@ -303,13 +441,13 @@ const BUILDINGS=[
   {id:'C',name:'Tòa C',floors:3,elevator:false,fmt:(f,k)=>`C${f}${p2(k)}`,
     wings:[[875,703,1100,735],[1105,670,1145,735]],
     doors:{EC:'cửa phía Nam',P13:'cửa phía Đông'}},
-  // Tòa D: 11 tầng nổi + 1 tầng hầm. Lõi thang (tháp có logo) ở góc, hai cánh tháp chữ V,
-  // khối đế mặt cong 8 tầng ở giữa, sân thượng trên tầng 8.
-  {id:'D',name:'Tòa D',floors:11,basement:true,elevator:true,fmt:(f,k)=>f<0?`DH-${p2(k)}`:`D${p2(f)}-${p2(k)}`,
-    wings:[[878,757,925,805,{minF:-1}],
-           [925,757,1128,790,{stairsAt:'end'}],
-           [925,795,1060,862,{minF:-1,maxF:7,stairsAt:'end',shape:'podium'}],
-           [878,805,915,912,{stairsAt:'end'}]],
+  // Tòa D (theo ảnh vệ tinh, đơn vị mét): 11 tầng nổi + 1 tầng hầm. Khối chữ L gồm cánh Bắc dài ~46 m và cánh Tây ~32 m,
+  // khối góc chứa lõi thang; khối đế 7 tầng bo cong ở góc Đông Nam, tháp lõi có logo ở góc trong chữ L.
+  {id:'D',name:'Tòa D',floors:11,basement:true,elevator:true,local:true,fmt:(f,k)=>f<0?`DH-${p2(k)}`:`D${p2(f)}-${p2(k)}`,
+    wings:[[0,0,16,11.25,{minF:-1}],
+           [16,0,61.75,11.25,{stairsAt:'end'}],
+           [16,11.25,46,36,{minF:-1,maxF:7,stairsAt:'end',shape:'podium'}],
+           [0,11.25,16,43.75,{stairsAt:'end'}]],
     doors:{ED1:'sảnh chính (mặt cong)',ED2:'cửa phía Tây'}},
 ];
 const BLD=Object.fromEntries(BUILDINGS.map(b=>[b.id,b]));
@@ -321,8 +459,10 @@ BUILDINGS.forEach(b=>{ b.levels=[...(b.basement?[-1]:[]),...Array.from({length:b
 const fl=f=>f<0?'tầng hầm':'tầng '+f;           // tên tầng để đọc
 const flShort=f=>f<0?'Hầm':'T'+f;
 const levelGap=(b,f1,f2)=>{ const L=BLD[b].levels; return Math.abs(L.indexOf(f2)-L.indexOf(f1)); };
-// mặt bằng khối đế cong của tòa D (toạ độ sơ đồ)
-const PODIUM=(()=>{ const pts=[[915,790],[1128,790],[1128,830]]; for(let t=0.1;t<=1.001;t+=0.1){ const a=1-t; pts.push([a*a*1128+2*a*t*1085+t*t*970, a*a*830+2*a*t*905+t*t*915]); } pts.push([915,912]); return pts; })();
+// mặt bằng khối đế tòa D (mét, toạ độ 3D): cạnh Đông thẳng, góc Đông Nam bo cung elip, cạnh Nam thẳng
+const PODIUM_W=(()=>{ const P=[[16,11.25],[49,11.25],[49,31.25]], cx=31.25, cy=31.25, rx=17.75, ry=12.5;
+  for(let k=1;k<=12;k++){ const t=k/12*Math.PI/2; P.push([cx+rx*Math.cos(t),cy+ry*Math.sin(t)]); }
+  P.push([16,43.75]); return P.map(([u,v])=>DL(u,v)); })();
 
 // Nút ngoài trời: [x, y trên sơ đồ, gợi nhớ khi đi ngang qua]
 const OUT={
@@ -352,7 +492,9 @@ function node(id,x,z,level,kind,extra){ if(!nodes[id]){ nodes[id]=Object.assign(
 function edge(a,b,cost,dist,type,extra){ adj[a].push(Object.assign({to:b,cost,dist,type},extra)); adj[b].push(Object.assign({to:a,cost,dist,type},extra)); }
 const D2=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 
-Object.entries(OUT).forEach(([id,[px,py,near]])=>{ const m=M(px,py); node(id,m.x,m.z,0,'out',{near}); });
+// các nút sát tòa D đặt theo mặt bằng mới của tòa D (mét)
+const OUT_D={ED1:[45.5,45.5], ED2:[-4,26], P14:[67,38], P13:[67,-6]};
+Object.entries(OUT).forEach(([id,[px,py,near]])=>{ const m=OUT_D[id]?DL(...OUT_D[id]):M(px,py); node(id,m.x,m.z,0,'out',{near}); });
 OUT_EDGES.forEach(s=>{ const [a,b]=s.split('-'); const d=D2(nodes[a],nodes[b]); edge(a,b,d,d,'out'); });
 const places=PLACES.map(([n,name,sub,tags])=>({id:'p_'+n,node:n,name,sub,tags,kind:'place'}));
 places.forEach(p=>byId[p.id]=p);
@@ -360,7 +502,7 @@ places.forEach(p=>byId[p.id]=p);
 const corrByWing={}; // `${b}|${f}|${wi}` → [corridor nodes]
 BUILDINGS.forEach(b=>{
   b.wingGeo=b.wings.map(r=>{ const o=r[4]||{};
-    const a=M(r[0],r[1]), c=M(r[2],r[3]);
+    const a=b.local?DL(r[0],r[1]):M(r[0],r[1]), c=b.local?DL(r[2],r[3]):M(r[2],r[3]);
     const X0=a.x,Z0=a.z,X1=c.x,Z1=c.z, alongX=(X1-X0)>=(Z1-Z0);
     const len=alongX?X1-X0:Z1-Z0, dep=alongX?Z1-Z0:X1-X0;
     const n=Math.max(2,Math.round(len/8.5)), cell=len/n, cw=Math.min(2.6,dep*0.28);
@@ -395,7 +537,7 @@ BUILDINGS.forEach(b=>{
         const c=w.P((u0+u1)/2,(v0+v1)/2), door=w.P((u0+u1)/2,s*w.cw/2);
         let id,code=null;
         if(kind==='room'){ k++; code=b.fmt(f,k); id=code; name=NAMES[code]||defaultName(b.id,f); }
-        else id=`${b.id}${f}-${sid}`;
+        else id=`${b.id}${f<0?'H':f}-${sid}`;   // ví dụ D4-TM, DH-TM (tầng hầm)
         const u={id,code,name,kind,b:b.id,f,wing:wi,rect,c,door,vkey:sid&&kind!=='wc'?`${b.id}-${sid}`:null};
         units.push(u); byId[id]=u;
         node(id,c.x,c.z,f,kind,{b:b.id});
@@ -444,11 +586,11 @@ function route(from,to,noStairs){
 
 /* ================= 3. HƯỚNG DẪN TỪNG BƯỚC ================= */
 const targetNode=t=>t.kind==='place'?t.node:t.id;
-function tLabel(t){ if(t.kind==='place') return t.name; if(t.kind==='wc') return `Nhà vệ sinh ${fl(t.f)} tòa ${t.b}`; return `${t.code} · ${t.name}`; }
+function tLabel(t){ if(t.kind==='place') return t.name; if(t.kind==='wc') return `Nhà vệ sinh ${fl(t.f)} tòa ${t.b}`; if(!t.code) return `${t.name} ${fl(t.f)} tòa ${t.b}`; return `${t.code} · ${t.name}`; }
 function buildSteps(r,start,dest){
   const P=r.path.map(id=>nodes[id]), E=r.edges, steps=[];
   let walk=0, out=0, stairsF=0, elevF=0, elevRides=0;
-  steps.push({t:'start',html: start.kind==='place' ? `Xuất phát tại <b>${start.name}</b>.` : `Xuất phát tại <b>${tLabel(start)}</b>, ${fl(start.f)} tòa ${start.b}.`});
+  steps.push({t:'start',html: start.id==='me' ? 'Xuất phát từ <b>vị trí hiện tại</b> của bạn.' : start.kind==='place' ? `Xuất phát tại <b>${start.name}</b>.` : `Xuất phát tại <b>${tLabel(start)}</b>, ${fl(start.f)} tòa ${start.b}.`});
   const cat=e=>e.type==='walk'?'in':e.type;
   let i=0;
   steps[0].i0=steps[0].i1=0; if(P[0].level!==0){ steps[0].b=P[0].b; steps[0].f=P[0].level; }
@@ -472,7 +614,7 @@ function buildSteps(r,start,dest){
       const fromF=P[i].level, toF=P[j].level, n=levelGap(P[i].b,fromF,toF);
       if(c==='stairs') stairsF+=n; else { elevF+=n; elevRides++; }
       const nm=c==='stairs'?byId[P[i].id].name.toLowerCase():'thang máy';
-      steps.push({t:c==='stairs'?'stairs':'elev',html:`Đi ${nm} ${toF>fromF?'lên':'xuống'} <b>${fl(toF)}</b>.`});
+      steps.push({t:c==='stairs'?'stairs':'elev',toF,html:`Đi ${nm} ${toF>fromF?'lên':'xuống'} <b>${fl(toF)}</b>.`});
     } else if(c==='door'){
       walk+=d;
     } else if(c==='out'){
@@ -500,6 +642,12 @@ function buildSteps(r,start,dest){
   return {steps,walk,out,stairsF,elevRides,elevF,secs};
 }
 
+/* điểm xuất phát có tên: cửa ra vào các tòa, và vị trí hiện tại (GPS) */
+const DOOR_PLACES=[];
+BUILDINGS.forEach(b=>Object.entries(b.doors).forEach(([oid,label])=>{ if(DOOR_PLACES.some(p=>p.node===oid&&p.b===b.id)) return;
+  const p={id:`door_${b.id}_${oid}`,node:oid,name:`${b.name} · ${label}`,sub:'',kind:'place',door:true,b:b.id}; byId[p.id]=p; DOOR_PLACES.push(p); }));
+byId.me={id:'me',node:'ME',name:'Vị trí hiện tại của bạn',sub:'GPS',kind:'place'};
+
 /* ================= 4. ĐIỀU KHIỂN ================= */
 const $=s=>document.querySelector(s);
 const fromSel=$('#from'), q=$('#q'), results=$('#results'), wcBox=$('#wc');
@@ -507,9 +655,13 @@ const state={from:null, to:null, noStairs:false, focus:null, floor:0};
 const targets=[...places, ...units.filter(u=>u.kind==='room'||u.kind==='wc')];
 (function fillFrom(){
   const ph=document.createElement('option'); ph.value=''; ph.textContent='Chọn nơi bạn đang đứng…'; fromSel.appendChild(ph);
+  const me=document.createElement('option'); me.value='me'; me.id='optMe'; me.textContent='Vị trí hiện tại (GPS)'; fromSel.appendChild(me);
   const g0=document.createElement('optgroup'); g0.label='Cổng và địa điểm ngoài trời';
   places.forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=p.name+(p.sub?' ('+p.sub+')':''); g0.appendChild(o); });
   fromSel.appendChild(g0);
+  const gd=document.createElement('optgroup'); gd.label='Cửa ra vào các tòa';
+  DOOR_PLACES.forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=p.name; gd.appendChild(o); });
+  fromSel.appendChild(gd);
   BUILDINGS.forEach(b=>{ for(const f of b.levels){
     const g=document.createElement('optgroup'); g.label=`${b.name} · ${fl(f)}`;
     units.filter(u=>u.b===b.id&&u.f===f&&u.kind==='room').forEach(u=>{ const o=document.createElement('option'); o.value=u.id; o.textContent=tLabel(u); g.appendChild(o); });
@@ -542,7 +694,9 @@ q.addEventListener('keydown',e=>{
 });
 results.addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) pickDest(b.dataset.id); });
 document.addEventListener('click',e=>{ if(!e.target.closest('.searchwrap')) results.hidden=true; });
-fromSel.addEventListener('change',()=>{ state.from=fromSel.value||null; update(true); });
+fromSel.addEventListener('change',()=>{ state.from=fromSel.value||null;
+  if(state.from==='me'&&!(geo.fix&&!geo.fix.level)){ openGeoPanel(); if(!geo.src) startGps(); }
+  update(true); });
 wcBox.addEventListener('change',()=>{ state.noStairs=wcBox.checked; update(true); });
 
 const bldBar=$('#bldBar'), floorBar=$('#floorBar');
@@ -577,6 +731,8 @@ function fmtTime(s){ return s<60?'dưới 1 phút':'khoảng '+Math.round(s/60)+
 function where(t){ return t.kind==='place'?'Ngoài trời':`Tòa ${t.b} · ${flShort(t.f)}`; }
 function renderPanel(info){
   const S=$('#summary'), a=byId[state.from], b=byId[state.to];
+  if(state.from==='me'&&!nodes.ME){
+    S.innerHTML=`<p class="note">${geo.fix&&geo.fix.far>350?'Vị trí GPS hiện ở ngoài khuôn viên trường nên chưa tìm đường được. Chọn nơi xuất phát khác hoặc dùng mã QR.':'Đang chờ vị trí của bạn. Bật định vị bằng nút ◎ trên bản đồ, đặt vị trí bằng tay, hoặc chọn nơi xuất phát khác.'}</p>`; return; }
   if(!a||!b){
     const msg = !a&&!b ? 'Chọn nơi bạn đang đứng và nơi cần đến để xem đường đi. Bạn cũng có thể chạm vào một tòa trên bản đồ để xem bên trong.'
       : !a ? 'Đã chọn nơi cần đến. Giờ chọn nơi bạn đang đứng ở ô phía trên.' : 'Đã chọn nơi xuất phát. Giờ tìm nơi cần đến.';
@@ -599,11 +755,12 @@ function renderPanel(info){
     <ol class="steps">${info.steps.map((s,k)=>`<li class="${s.t}${nav.on&&k===nav.k?' cur':''}" data-step="${k}" tabindex="0" title="Xem mốc ${k+1} trên bản đồ"><span class="n">${k+1}</span><div>${s.html}</div></li>`).join('')}</ol>`;
 }
 function renderGeo(){
-  const u=byId[state.to], r1=v=>Math.round(v*10)/10; let f;
+  const u=byId[state.to]; let f;
+  const ll=(x,z)=>{ const g=latLonFromWorld(x,z); return [+g[1].toFixed(7),+g[0].toFixed(7)]; };   // [kinh độ, vĩ độ] theo GeoJSON
   if(!u){ $('#geo').textContent='Chưa chọn nơi cần đến.'; return; }
-  if(u.kind==='place'){ const n=nodes[u.node]; f={type:'Feature',id:u.id,feature_type:'amenity',properties:{category:'outdoor',name:{vi:u.name}},geometry:{type:'Point',coordinates:[r1(n.x),r1(n.z)]}}; }
-  else { const R=u.rect; f={type:'Feature',id:u.id,feature_type:'unit',properties:{category:u.kind==='wc'?'restroom':'room',name:{vi:u.name},alt_name:u.code,building_id:u.b,level_id:`${u.b}-L${u.f}`,display_point:{type:'Point',coordinates:[r1(u.c.x),r1(u.c.z)]}},
-    geometry:{type:'Polygon',coordinates:[[[R.x0,R.z0],[R.x1,R.z0],[R.x1,R.z1],[R.x0,R.z1],[R.x0,R.z0]].map(p=>p.map(r1))]}}; }
+  if(u.kind==='place'){ const n=nodes[u.node]; f={type:'Feature',id:u.id,feature_type:'amenity',properties:{category:'outdoor',name:{vi:u.name}},geometry:{type:'Point',coordinates:ll(n.x,n.z)}}; }
+  else { const R=u.rect; f={type:'Feature',id:u.id,feature_type:'unit',properties:{category:u.kind==='wc'?'restroom':'room',name:{vi:u.name},alt_name:u.code,building_id:u.b,level_id:`${u.b}-L${u.f}`,display_point:{type:'Point',coordinates:ll(u.c.x,u.c.z)}},
+    geometry:{type:'Polygon',coordinates:[[[R.x0,R.z0],[R.x1,R.z0],[R.x1,R.z1],[R.x0,R.z1],[R.x0,R.z0]].map(p=>ll(p[0],p[1]))]}}; }
   $('#geo').textContent=JSON.stringify(f,null,2);
 }
 
@@ -624,7 +781,8 @@ const sun=new THREE.DirectionalLight(0xffffff,0.5); sun.position.set(80,200,120)
 const tok=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
 const elev=(level,h)=>(level===0?0:(level>0?level-1:level)*FH)+(h||0);
 
-let landmarks=[], routeUse=null, groundMesh=null, dShell=null;
+let landmarks=[], routeUse=null, groundMesh=null, dShell=null, routeNodes=[], routeIds=[];
+let meGroup=null, meDot=null, meAcc=null, mePulse=null, meDir=null;
 let segMeshes=[], segTypes=[], msSprites=[], arrowPool=[], arrowOutline={}, arrowCore={}, curInfo=null, dark=false;
 const nav={on:false,k:0};
 const STEP_TOK={start:'--sign',in:'--seg-in',out:'--seg-out',stairs:'--seg-stairs',elev:'--seg-elev',end:'--route'};
@@ -706,7 +864,7 @@ function buildWorld(){
         if(f<w.minF||f>w.maxF) return;
         let slab;
         if(w.shape==='podium'){ // sàn khối đế theo mặt cong
-          const sh=new THREE.Shape(PODIUM.map(([px,py])=>{ const m=M(px,py); return new THREE.Vector2(m.x,-m.z); }));
+          const sh=new THREE.Shape(PODIUM_W.map(m=>new THREE.Vector2(m.x,-m.z)));
           const geo=new THREE.ExtrudeGeometry(sh,{depth:0.3,bevelEnabled:false}); geo.rotateX(-Math.PI/2);
           slab=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:tok('--slab')})); slab.position.y=y-0.3;
         } else slab=flat(w.X0,w.Z0,w.X1,w.Z1,y-0.15,tok('--slab'),0.3);
@@ -726,7 +884,7 @@ function buildWorld(){
     const c=b.wingGeo[0], bl=makeLabel(b.id,b.basement?`${b.floors} tầng + hầm`:`${b.floors} tầng`,{fs:26,px:30,bg:'--sign',fg:'--sign-ink',stroke:'--sign'});
     bl.position.set((c.X0+c.X1)/2,elev(b.floors)+(b.id==='D'?17:6),(c.Z0+c.Z1)/2); bl.userData.bldLabel=b.id; bg.add(bl); staticLabels.push(bl);
   });
-  buildGates(); dShell=buildDShell();
+  buildGates(); dShell=buildDShell(); buildMe();
   labelGroup=new THREE.Group(); world.add(labelGroup);
   routeGroup=new THREE.Group(); world.add(routeGroup);
   // mũi tên nhỏ chạy liên tục: thân kính hơi trong suốt, quầng sáng cùng màu đoạn, có bóng đổ mềm phía sau
@@ -896,8 +1054,8 @@ function buildDShell(){
   shellBox(core.X0,core.Z0,core.X1,core.Z1,y0,wingTop+FH*0.4,{});                // khối lõi phía sau
   // tháp lõi có logo: xoay 45° hướng ra khoảng giữa hai cánh, cao vượt hai cánh
   const ct=new THREE.Mesh(new THREE.BoxGeometry(11,coreTop-y0,11),[mat({color:shade('#EDE4D3')}),mat({color:shade('#EDE4D3')}),roof,roof,mat({map:coreTex}),mat({color:shade('#EDE4D3')})]);
-  ct.position.set(core.X1-3.2,(y0+coreTop)/2,core.Z1-3.2); ct.rotation.y=Math.PI/4; reg(ct);
-  const crown=new THREE.Mesh(new THREE.BoxGeometry(0.8,5,0.8),mat({color:shade('#F4F4F2'),opacity:0.8})); crown.renderOrder=3; crown.position.set(core.X1-3.2+3.0,coreTop+2.5,core.Z1-3.2+3.0); g.add(crown);
+  ct.position.set(core.X1+3.6,(y0+coreTop)/2,core.Z1+3.6); ct.rotation.y=Math.PI/4; reg(ct);   // góc trong chữ L, mặt có logo nhìn về Đông Nam
+  const crown=new THREE.Mesh(new THREE.BoxGeometry(0.8,5,0.8),mat({color:shade('#F4F4F2'),opacity:0.8})); crown.renderOrder=3; crown.position.set(core.X1+3.6+3.0,coreTop+2.5,core.Z1+3.6+3.0); g.add(crown);
   // tháp kính thang bộ ở đầu cánh Đông, khung xanh, mũ lam trắng dạng chữ V
   const gx0=east.X1-9, gx1=east.X1+0.3, gz0=east.Z0-0.3, gz1=east.Z1+3.2, gh=elev(12)+FH*0.6-y0;
   const glass=new THREE.Mesh(new THREE.BoxGeometry(gx1-gx0,gh,gz1-gz0),mat({map:texRep(glassGrid,3,fl(gh)),opacity:0.34,roughness:0.15,metalness:0.2}));
@@ -907,12 +1065,12 @@ function buildDShell(){
   for(let i=0;i<9;i++){ const L=FH*(1.2+2.6*(1-Math.abs(i-4)/4)); const fin=new THREE.Mesh(new THREE.BoxGeometry(0.22,L,0.5),mat({color:shade('#FFFFFF'),opacity:0.8})); fin.renderOrder=3;
     fin.position.set(gx0+0.6+i*((gx1-gx0-1.2)/8),y0+gh-L/2,gz1+0.35); g.add(fin); }
   // khối đế mặt cong: tầng trệt là hàng cột, 6 tầng phía trên bọc kính khung xám
-  const sh=new THREE.Shape(PODIUM.map(([px,py])=>{ const m=M(px,py); return new THREE.Vector2(m.x,-m.z); }));
+  const sh=new THREE.Shape(PODIUM_W.map(m=>new THREE.Vector2(m.x,-m.z)));
   const pBot=elev(2)-0.3, pTop=elev(8), pH=pTop-pBot;
   const cap=new THREE.Mesh(new THREE.ShapeGeometry(sh).rotateX(-Math.PI/2),mat({color:shade('#E3E7E9'),side:THREE.DoubleSide}));
   cap.position.y=pTop+0.05; reg(cap);
-  { const P=PODIUM.slice(1).map(([px,py])=>M(px,py)), pos=[], uv=[], idx=[]; let acc=0;
-    const cx=PODIUM.reduce((a,[px])=>a+M(px,0).x,0)/PODIUM.length, cz=PODIUM.reduce((a,[,py])=>a+M(0,py).z,0)/PODIUM.length;
+  { const P=PODIUM_W.slice(1), pos=[], uv=[], idx=[]; let acc=0;
+    const cx=PODIUM_W.reduce((a,m)=>a+m.x,0)/PODIUM_W.length, cz=PODIUM_W.reduce((a,m)=>a+m.z,0)/PODIUM_W.length;
     P.forEach((p,k)=>{
       if(k) acc+=Math.hypot(p.x-P[k-1].x,p.z-P[k-1].z);
       const a=P[Math.max(0,k-1)], b=P[Math.min(P.length-1,k+1)]; let nx=b.z-a.z, nz=-(b.x-a.x); const L=Math.hypot(nx,nz)||1; nx/=L; nz/=L;
@@ -922,8 +1080,8 @@ function buildDShell(){
       if(k){ const i=k*2; idx.push(i-2,i-1,i, i-1,i+1,i); } });
     const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2)); geo.setIndex(idx); geo.computeVertexNormals();
     reg(new THREE.Mesh(geo,mat({map:texRep(curtain,1,1),side:THREE.DoubleSide,opacity:0.5}))); }
-  const cen=PODIUM.reduce((a,[px,py])=>{ const m=M(px,py); a.x+=m.x/PODIUM.length; a.z+=m.z/PODIUM.length; return a; },{x:0,z:0});
-  PODIUM.slice(2,-1).forEach(([px,py])=>{ const m=M(px,py); const c=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,FH,8),mat({color:shade('#F2F2EF'),opacity:0.7})); c.renderOrder=3;
+  const cen=PODIUM_W.reduce((a,m)=>{ a.x+=m.x/PODIUM_W.length; a.z+=m.z/PODIUM_W.length; return a; },{x:0,z:0});
+  PODIUM_W.slice(2,-1).forEach(m=>{ const c=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,FH,8),mat({color:shade('#F2F2EF'),opacity:0.7})); c.renderOrder=3;
     c.position.set(m.x+(cen.x-m.x)*0.06,elev(1)+FH/2-0.15,m.z+(cen.z-m.z)*0.06); g.add(c); });
   return g;
 }
@@ -939,12 +1097,13 @@ function drawRoute(r,info){
   while(routeGroup.children.length){ const o=routeGroup.children.pop(); o.geometry&&o.geometry.dispose(); if(o.material){ o.material.map&&o.material.map.dispose(); o.material.dispose(); } }
   segColors=[]; segMeshes=[]; segTypes=[]; msSprites=[];
   units.forEach(u=>{ if(u.mesh&&u.mesh.userData.base) u.mesh.material.color.copy(u.mesh.userData.base); });
-  routePts=[]; routeDists=[0]; routeLen=0; routeUse=null;
+  routePts=[]; routeDists=[0]; routeLen=0; routeUse=null; routeIds=[]; routeNodes=[];
   const cRoute=new THREE.Color(tok('--route')), d=byId[state.to];
   if(d&&d.mesh) d.mesh.material.color.copy(cRoute);
   if(!r) return;
   routeUse={blds:new Set(),floors:new Set()};
   r.path.forEach(id=>{ const n=nodes[id]; if(n.b&&n.level){ routeUse.blds.add(n.b); routeUse.floors.add(n.b+'|'+n.level); } });
+  routeIds=r.path.slice(); routeNodes=r.path.map(id=>nodes[id]);
   routePts=r.path.map(id=>{ const n=nodes[id]; return new THREE.Vector3(n.x,n.level===0?0.9:elev(n.level,0.8),n.z); });
   for(let i=1;i<routePts.length;i++){
     const t=r.edges[i-1].type, c=new THREE.Color(tok(SEG_TOK[t])); segColors.push(c); segTypes.push(t);
@@ -990,12 +1149,13 @@ function frameRouteOrCampus(){ if(routePts.length>1) frameBox(routePts); else fl
 
 /* ---- chạm để chọn ---- */
 const ray=new THREE.Raycaster(), ptr=new THREE.Vector2(); let downAt=null;
-renderer.domElement.addEventListener('pointerdown',e=>{ downAt=[e.clientX,e.clientY]; });
+renderer.domElement.addEventListener('pointerdown',e=>{ downAt=[e.clientX,e.clientY]; geo.follow=false; });
 renderer.domElement.addEventListener('pointerup',e=>{
   if(!downAt||Math.hypot(e.clientX-downAt[0],e.clientY-downAt[1])>6) return;
   const r=renderer.domElement.getBoundingClientRect();
   ptr.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
   ray.setFromCamera(ptr,camera);
+  if(geo.pin){ const pt=new THREE.Vector3(); if(ray.ray.intersectPlane(GROUND,pt)) placePin(pt.x,pt.z); return; }
   const vis=pickables.filter(m=>{ let o=m; while(o){ if(!o.visible) return false; o=o.parent; } return !state.focus||m.userData.bld===state.focus; });
   const hit=ray.intersectObjects(vis)[0]; if(!hit) return;
   const ud=hit.object.userData;
@@ -1006,7 +1166,8 @@ renderer.domElement.addEventListener('pointerup',e=>{
 function update(reframe,keepNav){
   fromSel.value=state.from||'';
   const a=byId[state.from], d=byId[state.to];
-  const r=(!a||!d||state.from===state.to)?null:route(targetNode(a),targetNode(d),state.noStairs);
+  const meOk=state.from!=='me'||placeMeNode();
+  const r=(!a||!d||!meOk||state.from===state.to)?null:route(targetNode(a),targetNode(d),state.noStairs);
   curInfo=r?buildSteps(r,a,d):null;
   if(!keepNav||!curInfo) nav.on=false; else nav.k=Math.min(nav.k,curInfo.steps.length-1);
   renderPanel(curInfo); renderGeo(); drawRoute(r,curInfo);
@@ -1025,21 +1186,24 @@ function renderNavCard(){
   bd.textContent=nav.k+1; bd.style.background=`var(${STEP_TOK[st.t]})`;
   $('#ncCount').textContent=`Mốc ${nav.k+1} / ${N}`; $('#ncText').innerHTML=st.html;
   $('#ncProg').style.width=(N>1?nav.k/(N-1)*100:100)+'%';
-  $('#navPrev').disabled=nav.k===0; $('#navNext').textContent=nav.k===N-1?'Hoàn tất':'Tiếp';
+  $('#navPrev').disabled=nav.k===0; $('#navNext').textContent=nextLabel(nav.k);
+  $('#ncSim').hidden=!geo.sim;
+  renderNavLive();
 }
 function markList(){
   document.querySelectorAll('#summary li[data-step]').forEach(li=>li.classList.toggle('cur',nav.on&&+li.dataset.step===nav.k));
   const cur=document.querySelector('#summary li.cur');
   if(cur&&window.matchMedia('(min-width:761px)').matches) cur.scrollIntoView({block:'nearest',behavior:reduce.matches?'auto':'smooth'});
 }
-function goStep(k){
+function goStep(k,opt){
   if(!curInfo) return;
   if(state.focus){ state.focus=null; state.floor=0; renderBars(); }
   nav.on=true; nav.k=Math.max(0,Math.min(curInfo.steps.length-1,k));
+  geo.walked=0; geo.prog=null; geo.off=0; geo.follow=true;
   applyFocus(); highlightStep(); renderNavCard(); markList(); flyToStep(nav.k);
 }
 function startNav(){ goStep(0); if(window.matchMedia('(max-width:760px)').matches) $('.mapcol').scrollIntoView({block:'start',behavior:reduce.matches?'auto':'smooth'}); }
-function exitNav(){ nav.on=false; applyFocus(); highlightStep(); renderNavCard(); markList(); frameRouteOrCampus(); }
+function exitNav(){ stopSim(); nav.on=false; applyFocus(); highlightStep(); renderNavCard(); markList(); frameRouteOrCampus(); }
 function flyPose(target,pos){
   if(reduce.matches){ controls.target.copy(target); camera.position.copy(pos); return; }
   tween={t0:performance.now(),dur:900,fromT:controls.target.clone(),toT:target,fromP:camera.position.clone(),toP:pos};
@@ -1058,6 +1222,8 @@ function flyToStep(k){
   flyPose(c,pos);
 }
 $('#navStart').addEventListener('click',startNav);
+$('#navSim').addEventListener('click',startSim);
+$('#ncSim').addEventListener('click',()=>{ stopSim(); toast('Đã dừng mô phỏng.'); });
 $('#navPrev').addEventListener('click',()=>goStep(nav.k-1));
 $('#navNext').addEventListener('click',()=>{ if(curInfo&&nav.k>=curInfo.steps.length-1) exitNav(); else goStep(nav.k+1); });
 $('#navExit').addEventListener('click',exitNav);
@@ -1111,6 +1277,7 @@ window.addEventListener('keydown',e=>{
   if(e.key==='h'||e.key==='H'){ goHome(); return; }
   if(curInfo&&(e.key==='n'||e.key==='N')){ nav.on&&nav.k>=curInfo.steps.length-1?exitNav():goStep(nav.on?nav.k+1:0); return; }
   if(nav.on&&(e.key==='p'||e.key==='P')){ goStep(nav.k-1); return; }
+  if(e.key==='Escape'&&(geo.pin||!$('#geoPanel').hidden)){ setPin(false); closeGeoPanel(); return; }
   if(nav.on&&e.key==='Escape'){ exitNav(); return; }
   const a=KEYS[e.key.toLowerCase()]; if(!a) return; e.preventDefault(); held.add(a);
 });
@@ -1164,13 +1331,340 @@ function scaleLabel(sp,k){ sp.getWorldPosition(tmp); const d=tmp.distanceTo(came
 function tick(now){
   if(tween){ let p=Math.min(1,(now-tween.t0)/tween.dur); p=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
     controls.target.lerpVectors(tween.fromT,tween.toT,p); camera.position.lerpVectors(tween.fromP,tween.toP,p); if(p>=1) tween=null; }
-  const dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+  const rawDt=Math.min(0.25,(now-lastT)/1000), dt=Math.min(0.05,rawDt); lastT=now;
   held.forEach(a=>applyAct(a,dt));
   controls.update(); clampTarget();
   const k=2*Math.tan(camera.fov*Math.PI/360)/Math.max(1,host.clientHeight);
   staticLabels.forEach(s=>scaleLabel(s,k)); labelGroup&&labelGroup.children.forEach(s=>scaleLabel(s,k)); msSprites.forEach(s=>scaleLabel(s,k));
   updateArrows(now);
+  simTick(rawDt,now); meTick(rawDt,now);
   renderer.render(scene,camera); requestAnimationFrame(tick);
+}
+
+/* ================= 6. ĐỊNH VỊ =================
+   Ngoài trời: GPS của điện thoại, bắt dính vào lối đi, tự chuyển mốc khi tới gần.
+   Trong nhà: GPS không biết tầng, nên dùng mã QR tại cầu thang / thang máy, đếm bước chân để ước lượng quãng đã đi,
+   và người dùng bấm xác nhận khi tới nơi. Có chế độ mô phỏng và đặt vị trí bằng tay để thử trên máy tính. */
+const geo={src:null,fix:null,watch:null,waiting:false,err:null,sim:null,pin:false,off:0,walked:0,prog:null,follow:true,
+  dismissed:false,sgHtml:'',lastMeAt:null,disp:null,dir:null,prev:null,flown:false};
+const SRC_NAME={gps:'GPS',sim:'Mô phỏng',pin:'Đặt bằng tay',qr:'Mã QR'};
+const GROUND=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+const OUT_SEGS=OUT_EDGES.map(s=>s.split('-'));
+const CAMPUS_R=350;                                     // xa hơn bán kính này (m) là ở ngoài trường
+const tmpV=new THREE.Vector3();
+const isOutStep=st=>st.t==='out'||(st.t==='start'&&routeNodes.length&&routeNodes[0].level===0);
+const stripTags=h=>h.replace(/<[^>]+>/g,'');
+const isNarrow=()=>window.matchMedia('(max-width:760px)').matches;
+
+/* ---- chấm vị trí trên bản đồ ---- */
+function buildMe(){
+  meGroup=new THREE.Group(); meGroup.visible=false; world.add(meGroup);
+  const blue=new THREE.Color(tok('--me'));
+  const mk=(g,c,o,ro)=>{ g.rotateX(-Math.PI/2); const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,depthTest:false,depthWrite:false})); m.renderOrder=ro; return m; };
+  meAcc=mk(new THREE.CircleGeometry(1,56),blue,0.13,13); meGroup.add(meAcc);
+  mePulse=mk(new THREE.RingGeometry(0.82,1,48),blue,0.5,14); meGroup.add(mePulse);
+  meDot=new THREE.Group(); meGroup.add(meDot);
+  const sh=new THREE.Shape([new THREE.Vector2(0,2.7),new THREE.Vector2(1.15,1.05),new THREE.Vector2(-1.15,1.05)]);
+  meDir=mk(new THREE.ShapeGeometry(sh),blue,0.9,15); meDot.add(meDir);
+  meDot.add(mk(new THREE.CircleGeometry(1.3,36),new THREE.Color('#FFFFFF'),1,16));
+  meDot.add(mk(new THREE.CircleGeometry(0.95,36),blue,1,17));
+}
+function meTick(dt,now){
+  const f=geo.fix; if(!meGroup) return;
+  if(!f||f.far>CAMPUS_R){ meGroup.visible=false; return; }
+  meGroup.visible=true;
+  const ty=f.y!=null?f.y+0.2:(f.level?elev(f.level,0.95):0.35);
+  if(!geo.disp) geo.disp=new THREE.Vector3(f.x,ty,f.z);
+  geo.disp.lerp(tmpV.set(f.x,ty,f.z),Math.min(1,dt*5));
+  meGroup.position.copy(geo.disp);
+  const dist=camera.position.distanceTo(geo.disp), k=THREE.MathUtils.clamp(dist*0.011,0.9,6);
+  meDot.scale.setScalar(k);
+  meAcc.visible=f.src!=='qr'; meAcc.scale.setScalar(Math.max(f.acc||0,k*1.8));
+  const ph=reduce.matches?0.5:((now/1000)%1.8)/1.8;
+  mePulse.scale.setScalar(k*(1.2+ph*2.4)); mePulse.material.opacity=0.45*(1-ph);
+  meDir.visible=geo.dir!=null; if(geo.dir!=null) meDir.rotation.y=geo.dir;
+  // bám theo người dùng khi đang dẫn đường (chạm kéo bản đồ sẽ tạm dừng bám)
+  if(nav.on&&geo.follow&&!tween&&(geo.src==='gps'||geo.src==='sim')){
+    const a=Math.min(1,dt*1.6), dx=(geo.disp.x-controls.target.x)*a, dz=(geo.disp.z-controls.target.z)*a;
+    controls.target.x+=dx; controls.target.z+=dz; camera.position.x+=dx; camera.position.z+=dz; }
+}
+
+/* ---- nhận một vị trí mới (GPS, mô phỏng, chạm bản đồ, mã QR) ---- */
+function setFix(x,z,acc,src,o){ o=o||{};
+  const level=o.level||0;
+  if(geo.prev&&!level){ const mx=x-geo.prev.x, mz=z-geo.prev.z; if(Math.hypot(mx,mz)>2.5){ geo.dir=Math.atan2(-mx,-mz); geo.prev={x,z}; } }
+  else geo.prev={x,z};
+  if(src==='qr'||src==='pin') geo.dir=null;
+  geo.fix={x,z,acc,level,b:o.b||null,src,t:performance.now(),far:level?0:Math.hypot(x,z+5),lat:o.lat,lon:o.lon,y:o.y};
+  if(src!=='sim') geo.src=src;
+  if(src==='pin'||src==='qr') geo.disp=null;
+  renderGeoStatus(); onFix();
+}
+function onFix(){
+  const f=geo.fix; if(!f) return;
+  if(f.far>CAMPUS_R){ suggestStart(); renderNavLive(); return; }
+  if(!geo.flown&&f.src!=='sim'&&!nav.on){ geo.flown=true; flyTo(new THREE.Vector3(f.x,f.level?elev(f.level):0,f.z),60); }
+  if(!f.level&&state.from==='me'&&!nav.on&&(!geo.lastMeAt||Math.hypot(f.x-geo.lastMeAt.x,f.z-geo.lastMeAt.z)>8)) update(false);
+  suggestStart();
+  if(nav.on&&curInfo&&!f.level&&f.src!=='qr') trackProgress();
+  renderNavLive();
+}
+
+/* ---- bắt dính vào lối đi ngoài trời ---- */
+function snapOutdoor(x,z){ let best=null;
+  for(const [a,b] of OUT_SEGS){ const A=nodes[a],B=nodes[b], dx=B.x-A.x, dz=B.z-A.z, L2=dx*dx+dz*dz||1;
+    const t=Math.max(0,Math.min(1,((x-A.x)*dx+(z-A.z)*dz)/L2)), px=A.x+dx*t, pz=A.z+dz*t, d=Math.hypot(x-px,z-pz);
+    if(!best||d<best.d) best={a,b,x:px,z:pz,d}; }
+  return best; }
+// nút tạm "ME" trên lối đi gần nhất, dùng làm điểm xuất phát
+function placeMeNode(){
+  if(nodes.ME){ adj.ME.forEach(e=>{ adj[e.to]=adj[e.to].filter(f=>f.to!=='ME'); }); delete nodes.ME; delete adj.ME; }
+  const f=geo.fix; if(!f||f.level||f.far>CAMPUS_R) return false;
+  const sn=snapOutdoor(f.x,f.z); if(!sn) return false;
+  node('ME',sn.x,sn.z,0,'out');
+  [sn.a,sn.b].forEach(id=>{ const d=D2(nodes.ME,nodes[id]); edge('ME',id,d,d,'out'); });
+  geo.lastMeAt={x:f.x,z:f.z}; return true;
+}
+
+/* ---- gợi ý nơi xuất phát ---- */
+function suggestStart(){
+  const box=$('#geoSuggest'), f=geo.fix;
+  let html='';
+  if(!state.from&&f&&f.src!=='sim'&&f.src!=='qr'&&!geo.dismissed){
+    if(f.far>CAMPUS_R) html=`<p>Bạn đang ở ngoài khuôn viên trường, cách khoảng ${f.far>1000?(f.far/1000).toFixed(1).replace('.',',')+' km':Math.round(f.far/10)*10+' m'}. Khi tới cổng trường, vị trí sẽ được dùng làm điểm xuất phát.</p><div class="sg-btns"><button type="button" data-sg="x" class="sg-x">Đóng</button></div>`;
+    else if(f.acc>30) html=`<p>Sai số GPS đang khoảng ±${Math.round(f.acc)} m, chưa đủ để đoán bạn đứng ở đâu. Hãy dùng mã QR gần nhất hoặc chọn nơi xuất phát ở ô dưới.</p><div class="sg-btns"><button type="button" data-sg="me">Vẫn dùng vị trí GPS</button><button type="button" data-sg="x" class="sg-x">Bỏ qua</button></div>`;
+    else { const c=[...places,...DOOR_PLACES].map(p=>({p,d:Math.hypot(nodes[p.node].x-f.x,nodes[p.node].z-f.z)})).sort((a,b)=>a.d-b.d)[0];
+      html= c.d<=40 ? `<p>Bạn đang ở gần <b>${c.p.name}</b>${c.d>5?` (khoảng ${Math.round(c.d)} m)`:''}?</p><div class="sg-btns"><button type="button" data-sg="me" class="sg-main">Xuất phát từ vị trí của tôi</button><button type="button" data-sg="${c.p.id}">Chọn ${c.p.name}</button><button type="button" data-sg="x" class="sg-x">Bỏ qua</button></div>`
+        : `<p>Đã có vị trí của bạn (sai số ±${Math.round(f.acc)} m).</p><div class="sg-btns"><button type="button" data-sg="me" class="sg-main">Xuất phát từ vị trí của tôi</button><button type="button" data-sg="x" class="sg-x">Bỏ qua</button></div>`; }
+  }
+  if(html===geo.sgHtml) return;           // tránh dựng lại nút khi vị trí cập nhật liên tục
+  geo.sgHtml=html; box.innerHTML=html; box.hidden=!html;
+}
+$('#geoSuggest').addEventListener('click',e=>{ const b=e.target.closest('button[data-sg]'); if(!b) return;
+  const v=b.dataset.sg; geo.dismissed=true; geo.sgHtml=''; $('#geoSuggest').hidden=true; if(v==='x') return;
+  state.from=v; update(true); });
+
+/* ---- theo dõi tiến độ ngoài trời, tự chuyển mốc ---- */
+function trackProgress(){
+  const N=curInfo.steps.length, st=curInfo.steps[nav.k], f=geo.fix;
+  if(!isOutStep(st)){ geo.prog=null; return; }
+  const span=st.t==='start'?(curInfo.steps[1]||st):st;
+  let best=null;
+  for(let i=Math.max(1,span.i0+1);i<=span.i1;i++){ const A=routeNodes[i-1], B=routeNodes[i]; if(A.level!==0||B.level!==0) continue;
+    const dx=B.x-A.x, dz=B.z-A.z, L2=dx*dx+dz*dz||1, t=Math.max(0,Math.min(1,((f.x-A.x)*dx+(f.z-A.z)*dz)/L2));
+    const d=Math.hypot(f.x-(A.x+dx*t),f.z-(A.z+dz*t)); if(!best||d<best.d) best={d,s:routeDists[i-1]+t*(routeDists[i]-routeDists[i-1])}; }
+  if(!best) return;
+  if(best.d>Math.max(20,f.acc*1.5)){ geo.prog={off:true,d:best.d}; if(++geo.off===3) offRoute(); return; }
+  geo.off=0; geo.prog={s:best.s,rem:Math.max(0,routeDists[span.i1]-best.s)};
+  if(st.t==='start'){ if(best.s>4) goStep(1,{auto:true}); return; }
+  if(geo.prog.rem<7&&nav.k<N-1){ const nx=curInfo.steps[nav.k+1]; goStep(nav.k+1,{auto:true});
+    toast(nx.t==='end'?'Bạn đã tới nơi.':`Mốc ${nav.k+1}: ${stripTags(nx.html)}`); }
+}
+function offRoute(){
+  toast('Bạn có vẻ đã đi lệch khỏi lộ trình.','Tìm đường mới',()=>{ if(!geo.fix||geo.fix.level) return; state.from='me'; update(true); startNav(); });
+}
+
+/* ---- nội dung theo ngữ cảnh trên thẻ chỉ đường ---- */
+function nextLabel(k){
+  const N=curInfo.steps.length; if(k>=N-1) return 'Hoàn tất';
+  if(!geo.src) return 'Tiếp';
+  const st=curInfo.steps[k], nx=curInfo.steps[k+1];
+  if(st.t==='stairs'||st.t==='elev') return 'Đã tới '+fl(st.toF);
+  if(st.t==='start') return 'Bắt đầu đi';
+  if(nx.t==='end') return 'Đã tới nơi';
+  if(nx.t==='stairs') return 'Đã tới thang bộ';
+  if(nx.t==='elev') return 'Đã tới thang máy';
+  if(nx.t==='out') return 'Đã ra khỏi tòa';
+  if(st.t==='out'&&nx.b) return 'Đã vào tòa '+nx.b;
+  return 'Tiếp';
+}
+let liveT=0;
+function renderNavLive(force){
+  const el=$('#ncLive'), nb=$('#navNext');
+  const now=performance.now(); if(!force&&now-liveT<250) return; liveT=now;
+  if(!nav.on||!curInfo||!geo.src){ el.hidden=true; nb.classList.remove('pulse'); return; }
+  const st=curInfo.steps[nav.k], f=geo.fix, out=isOutStep(st);
+  let t='', ready=false;
+  if(st.t==='end') t='Bạn đã tới nơi.';
+  else if(out){
+    if(!f||f.level||f.src==='qr') t=geo.src==='gps'?'Đang chờ tín hiệu GPS ngoài trời…':'Đang ở ngoài trời. Bấm xác nhận khi tới mốc tiếp theo.';
+    else if(f.far>CAMPUS_R) t='Vị trí GPS đang ở ngoài khuôn viên trường.';
+    else if(geo.prog&&geo.prog.off) t=`Bạn đang cách lộ trình khoảng ${Math.round(geo.prog.d)} m.`;
+    else if(geo.prog) t=`${SRC_NAME[f.src]} ±${Math.round(f.acc)} m · còn khoảng ${Math.round(geo.prog.rem)} m tới mốc tiếp theo`;
+    else t=`${SRC_NAME[f.src]} ±${Math.round(f.acc)} m`;
+  } else {
+    const len=routeDists[st.i1]-routeDists[st.i0];
+    if(st.t==='in'&&geo.walked>0){ t=`Trong nhà · đã đi khoảng ${Math.round(Math.min(geo.walked,len*1.5))} / ${Math.round(len)} m (đếm bước chân). `; ready=geo.walked>=len*0.85; }
+    else t='Trong nhà GPS không đủ chính xác. ';
+    t+=geo.sim?'Mô phỏng sẽ tự xác nhận.':`Bấm “${nextLabel(nav.k)}” khi tới nơi, hoặc nhập mã QR gần nhất.`;
+    if(st.t==='stairs'||st.t==='elev') ready=true;
+  }
+  el.textContent=t; el.hidden=false; el.classList.toggle('indoor',!out&&st.t!=='end');
+  nb.classList.toggle('pulse',ready&&!geo.sim);
+}
+
+/* ---- GPS ---- */
+function startGps(){
+  startMotion();
+  stopSim(); stopGps(true); setPin(false);
+  if(!('geolocation' in navigator)){ geo.err='unsupported'; renderGeoStatus(); return; }
+  geo.src='gps'; geo.waiting=true; geo.err=null; geo.fix=null; geo.disp=null; geo.flown=false; renderGeoStatus();
+  try{
+    geo.watch=navigator.geolocation.watchPosition(p=>{
+      geo.waiting=false; geo.err=null; const c=p.coords, w=worldFromLatLon(c.latitude,c.longitude);
+      setFix(w.x,w.z,c.accuracy||50,'gps',{lat:c.latitude,lon:c.longitude});
+    },e=>{
+      if(e&&e.code===1){ stopGps(true); geo.err='denied'; }
+      else geo.err=e&&e.code===3?'timeout':'unavailable';
+      renderGeoStatus();
+    },{enableHighAccuracy:true,maximumAge:1000,timeout:20000});
+  }catch(_){ stopGps(true); geo.err='denied'; renderGeoStatus(); }
+}
+function stopGps(silent){
+  if(geo.watch!=null){ try{ navigator.geolocation.clearWatch(geo.watch); }catch(_){} geo.watch=null; }
+  if(geo.src==='gps'){ geo.src=null; geo.fix=null; }
+  geo.waiting=false; if(!silent){ geo.err=null; renderGeoStatus(); renderNavCard(); }
+}
+
+/* ---- đếm bước chân bằng cảm biến gia tốc (chỉ dùng trong nhà) ---- */
+let motionOn=false, accLP=9.8, lastStepT=0;
+function startMotion(){
+  if(motionOn||typeof DeviceMotionEvent==='undefined') return;
+  const go=()=>{ window.addEventListener('devicemotion',onMotion); motionOn=true; };
+  try{ if(typeof DeviceMotionEvent.requestPermission==='function') DeviceMotionEvent.requestPermission().then(r=>{ if(r==='granted') go(); }).catch(()=>{}); else go(); }catch(_){}
+}
+function onMotion(e){
+  const a=e.accelerationIncludingGravity; if(!a||a.x==null) return;
+  accLP=accLP*0.75+Math.hypot(a.x,a.y,a.z)*0.25;
+  const t=performance.now();
+  if(accLP>11.3&&t-lastStepT>320){ lastStepT=t;
+    if(nav.on&&curInfo&&!geo.sim&&curInfo.steps[nav.k].t==='in'){ geo.walked+=0.7; renderNavLive(); } }
+}
+
+/* ---- đặt vị trí bằng cách chạm bản đồ ---- */
+function setPin(on){ geo.pin=on; $('.mapwrap').classList.toggle('pinning',on); renderGeoStatus(); }
+function placePin(x,z){ stopSim(); stopGps(true); setPin(false); geo.flown=true; setFix(x,z,4,'pin'); toast('Đã đặt vị trí của bạn.'); }
+
+/* ---- mã QR ---- */
+function resolveCode(raw){
+  let c=String(raw||'').trim(); const h=c.lastIndexOf('#'); if(h>=0) c=c.slice(h+1); try{ c=decodeURIComponent(c); }catch(_){}
+  const n=norm(c); if(!n) return null; const up=c.toUpperCase();
+  const exact=units.find(u=>u.id.toUpperCase()===up||(u.code||'').toUpperCase()===up); if(exact) return exact;
+  return units.find(u=>norm(u.code||'')===n)||units.find(u=>norm(u.id)===n)
+    ||[...places,...DOOR_PLACES].find(p=>norm(p.node)===n||norm(p.id)===n||norm(p.name)===n)||null;
+}
+function applyCode(raw){
+  const t=resolveCode(raw);
+  if(!t){ toast(`Không nhận ra mã “${String(raw).slice(0,24)}”. Mã có dạng D04-10, D4-TM hoặc G1.`); return false; }
+  stopSim();
+  if(t.kind==='place'){ const n=nodes[t.node]; setFix(n.x,n.z,3,'qr'); }
+  else setFix(t.c.x,t.c.z,2,'qr',{level:t.f,b:t.b});
+  closeGeoPanel();
+  const nid=t.kind==='place'?t.node:t.id;
+  if(nav.on&&curInfo){
+    const j=routeIds.indexOf(nid);
+    if(j<0){ toast(`Bạn đang ở ${tLabel(t)}, không nằm trên lộ trình.`,'Tìm đường từ đây',()=>{ state.from=t.id; update(true); startNav(); }); return true; }
+    let k=0; curInfo.steps.forEach((st,i)=>{ if(st.i0<=j&&st.t!=='end') k=i; });
+    const st=curInfo.steps[k]; if(j>=st.i1&&st.t!=='start'&&k<curInfo.steps.length-1) k++;
+    goStep(k,{auto:true}); toast(`Đã cập nhật vị trí: ${tLabel(t)}.`);
+  } else { state.from=t.id; update(true); toast(`Nơi xuất phát: ${tLabel(t)}.`); }
+  return true;
+}
+async function scanQR(){
+  if(!('BarcodeDetector' in window)||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    toast('Trình duyệt này chưa quét được mã ngay trong trang. Hãy nhập mã in dưới mã QR, hoặc quét bằng ứng dụng camera.'); $('#gpCode').focus(); return; }
+  let stream; try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); }
+  catch(_){ toast('Không mở được camera. Hãy nhập mã in dưới mã QR.'); $('#gpCode').focus(); return; }
+  const box=$('#scan'), v=box.querySelector('video'); v.srcObject=stream; box.hidden=false; try{ await v.play(); }catch(_){}
+  let alive=true; const det=new BarcodeDetector({formats:['qr_code']});
+  const stop=()=>{ alive=false; stream.getTracks().forEach(t=>t.stop()); box.hidden=true; };
+  box.querySelector('button').onclick=stop;
+  while(alive){ try{ const r=await det.detect(v); if(r&&r[0]){ stop(); applyCode(r[0].rawValue); return; } }catch(_){} await new Promise(r=>setTimeout(r,300)); }
+}
+
+/* ---- mô phỏng: một người đi bộ giả lập theo lộ trình ---- */
+const gauss=()=>{ let u=0,v=0; while(!u) u=Math.random(); while(!v) v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
+function startSim(){
+  if(!curInfo){ toast('Chọn nơi xuất phát và nơi cần đến trước khi mô phỏng.'); return; }
+  stopGps(true); setPin(false); closeGeoPanel();
+  geo.src='sim'; geo.sim={s:0,v:1.4*4,hold:0,emit:0}; geo.fix=null; geo.disp=null; geo.dir=null; geo.prev=null;
+  goStep(0); renderGeoStatus();
+  if(isNarrow()) $('.mapcol').scrollIntoView({block:'start',behavior:reduce.matches?'auto':'smooth'});
+}
+function stopSim(){
+  if(!geo.sim) return; geo.sim=null;
+  if(geo.src==='sim'){ geo.src=null; geo.fix=null; }
+  renderGeoStatus(); if(curInfo) renderNavCard();
+}
+function pointAt(s){ let i=1; while(i<routeDists.length-1&&routeDists[i]<s) i++;
+  const seg=routeDists[i]-routeDists[i-1]||1, t=Math.max(0,Math.min(1,(s-routeDists[i-1])/seg));
+  return {p:new THREE.Vector3().lerpVectors(routePts[i-1],routePts[i],t),A:routeNodes[i-1],B:routeNodes[i]}; }
+function simTick(dt,now){
+  const sm=geo.sim; if(!sm) return;
+  if(!nav.on||!curInfo||routePts.length<2){ stopSim(); return; }
+  const N=curInfo.steps.length, st=curInfo.steps[nav.k];
+  if(st.t==='end'){ const q=pointAt(routeLen); geo.fix={x:q.p.x,z:q.p.z,acc:2,level:q.B.level,src:'sim',far:0,y:q.p.y,t:now};
+    sm.hold+=dt; if(sm.hold>1.2&&!sm.done){ sm.done=true; toast('Đã tới nơi. Kết thúc mô phỏng.'); setTimeout(stopSim,2500); } return; }
+  if(isOutStep(st)){
+    const span=st.t==='start'?(curInfo.steps[1]||st):st, lim=routeDists[span.i1]+2;
+    sm.s=Math.min(lim,sm.s+sm.v*dt);
+    if(sm.s>=lim){ sm.hold+=dt; if(sm.hold>2.5){ sm.hold=0; goStep(nav.k+1,{auto:true}); } } else sm.hold=0;
+    if(now-sm.emit>900){ sm.emit=now; const q=pointAt(sm.s); setFix(q.p.x+gauss()*3,q.p.z+gauss()*3,6,'sim'); }
+  } else {
+    // trong nhà không có GPS: giả lập đếm bước chân, tới cuối đoạn thì tự xác nhận
+    const a=routeDists[st.i0], b=routeDists[st.i1];
+    if(sm.s<a) sm.s=a;
+    if(sm.s<b){ const s0=sm.s; sm.s=Math.min(b,sm.s+sm.v*dt*(st.t==='in'?1:0.5)); if(st.t==='in') geo.walked+=sm.s-s0; sm.hold=0; }
+    else { sm.hold+=dt; if(sm.hold>1.5){ sm.hold=0; goStep(nav.k+1,{auto:true}); return; } }
+    const q=pointAt(sm.s);
+    if(geo.fix&&!geo.fix.level){ geo.prev=null; }
+    const lv=q.A.level||q.B.level;
+    if(geo.prev&&Math.hypot(q.p.x-geo.prev.x,q.p.z-geo.prev.z)>1.5){ geo.dir=Math.atan2(-(q.p.x-geo.prev.x),-(q.p.z-geo.prev.z)); geo.prev={x:q.p.x,z:q.p.z}; } else if(!geo.prev) geo.prev={x:q.p.x,z:q.p.z};
+    geo.fix={x:q.p.x,z:q.p.z,acc:3,level:lv,src:'sim',far:0,y:q.p.y,t:now};
+    renderNavLive();
+  }
+}
+
+/* ---- bảng "Vị trí của tôi" ---- */
+function openGeoPanel(){ $('#geoPanel').hidden=false; $('#locBtn').setAttribute('aria-expanded','true'); renderGeoStatus(); }
+function closeGeoPanel(){ $('#geoPanel').hidden=true; $('#locBtn').setAttribute('aria-expanded','false'); }
+function renderGeoStatus(){
+  const st=$('#gpStatus'), btn=$('#locBtn'), f=geo.fix; let t='Chưa bật định vị.', cls='';
+  if(geo.err==='denied'||geo.err==='unsupported'){ cls='err';
+    t='Không dùng được định vị trên trang này: trình duyệt hoặc khung xem đang chặn quyền vị trí. Bản xem trên Claude luôn bị chặn; khi đăng lên tên miền HTTPS của trường, nút này dùng được GPS thật. Trong lúc chờ, hãy thử “Mô phỏng” hoặc “Chạm bản đồ để đặt vị trí”.'; }
+  else if(geo.sim) { cls='ok'; t='Đang mô phỏng một người đi bộ theo lộ trình, nhanh gấp 4 lần. Ngoài trời vị trí có sai số ngẫu nhiên như GPS thật.'; }
+  else if(geo.pin) t='Chạm vào một điểm trên bản đồ để đặt vị trí của bạn. Bấm Esc để huỷ.';
+  else if(geo.src==='gps'&&!f) t=geo.err==='timeout'?'Chưa bắt được tín hiệu GPS. Hãy ra chỗ thoáng, xa mái che.':geo.err==='unavailable'?'Thiết bị chưa xác định được vị trí. Đang thử lại…':'Đang tìm tín hiệu GPS…';
+  else if(f&&f.far>CAMPUS_R){ cls='err'; t=`Bạn đang ở ngoài khuôn viên trường, cách khoảng ${f.far>1000?(f.far/1000).toFixed(1).replace('.',',')+' km':Math.round(f.far)+' m'}.`; }
+  else if(f){ cls='ok';
+    if(f.src==='gps'){ const ll=f.lat!=null?` · ${f.lat.toFixed(6)}, ${f.lon.toFixed(6)}`:''; t=`GPS · sai số ±${Math.round(f.acc)} m${ll}`; }
+    else if(f.src==='pin') t='Vị trí đặt bằng tay trên bản đồ.';
+    else if(f.src==='qr') t=f.level?`Theo mã QR: ${fl(f.level)} tòa ${f.b}.`:'Theo mã QR.'; }
+  st.textContent=t; st.className='gp-status '+cls;
+  btn.classList.toggle('on',!!f&&f.far<=CAMPUS_R); btn.classList.toggle('busy',geo.src==='gps'&&!f&&!geo.err); btn.classList.toggle('err',geo.err==='denied'||geo.err==='unsupported');
+  $('#gpGps span').textContent=geo.src==='gps'?'Tắt định vị GPS':'Bật định vị GPS';
+  $('#gpGps').classList.toggle('primary',geo.src!=='gps');
+  $('#gpCenter').hidden=!(f&&f.far<=CAMPUS_R);
+  $('#gpSim span').textContent=geo.sim?'Dừng mô phỏng':'Mô phỏng đi theo lộ trình';
+  $('#gpSim').disabled=!geo.sim&&!curInfo; $('#gpSim').title=curInfo?'':'Chọn nơi xuất phát và nơi cần đến trước';
+  $('#gpPin span').textContent=geo.pin?'Huỷ đặt vị trí':'Chạm bản đồ để đặt vị trí';
+  const om=$('#optMe'); if(om) om.textContent=f&&!f.level&&f.far<=CAMPUS_R?'Vị trí hiện tại (GPS)':'Vị trí hiện tại (cần bật định vị)';
+}
+$('#locBtn').addEventListener('click',e=>{ e.stopPropagation(); $('#geoPanel').hidden?openGeoPanel():closeGeoPanel(); });
+document.addEventListener('click',e=>{ if(!e.target.closest('.geoctl')&&!$('#geoPanel').hidden) closeGeoPanel(); });
+$('#gpGps').addEventListener('click',()=>{ geo.src==='gps'?stopGps():startGps(); });
+$('#gpCenter').addEventListener('click',()=>{ const f=geo.fix; if(!f) return; closeGeoPanel(); geo.follow=true; flyTo(new THREE.Vector3(f.x,f.level?elev(f.level):0,f.z),55); });
+$('#gpPin').addEventListener('click',()=>{ if(geo.pin){ setPin(false); return; } stopSim(); setPin(true); closeGeoPanel(); toast('Chạm vào một điểm trên bản đồ để đặt vị trí của bạn.'); });
+$('#gpSim').addEventListener('click',()=>{ geo.sim?stopSim():startSim(); });
+$('#gpScan').addEventListener('click',scanQR);
+$('#gpQr').addEventListener('submit',e=>{ e.preventDefault(); const v=$('#gpCode').value; if(applyCode(v)) $('#gpCode').value=''; });
+
+/* ---- thông báo ngắn trên bản đồ ---- */
+let toastT=null;
+function toast(msg,actLabel,act){
+  const t=$('#toast'), b=t.querySelector('button'); t.querySelector('span').textContent=msg;
+  b.hidden=!actLabel; if(actLabel){ b.textContent=actLabel; b.onclick=()=>{ t.hidden=true; act(); }; }
+  t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{ t.hidden=true; },actLabel?9000:4200);
 }
 
 function rebuild(){ buildWorld(); applyFocus(); update(false,true); }
@@ -1187,6 +1681,7 @@ $('#summary').addEventListener('click',e=>{
 });
 $('#summary').addEventListener('keydown',e=>{ const li=e.target.closest('li[data-step]'); if(li&&(e.key==='Enter'||e.key===' ')){ e.preventDefault(); goStep(+li.dataset.step); } });
 $('#reset').addEventListener('click',()=>{
+  stopSim(); setPin(false); geo.dismissed=false; geo.sgHtml='';
   Object.assign(state,{from:null,to:null,noStairs:false,focus:null,floor:0});
   q.value=''; results.hidden=true; wcBox.checked=false;
   renderBars(); update(false); flyTo(HOME.clone(),300);
@@ -1198,4 +1693,5 @@ requestAnimationFrame(tick);
 })();
 </script>
 
-</body></html>
+</body>
+</html>
